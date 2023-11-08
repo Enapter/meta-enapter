@@ -1,0 +1,17 @@
+[Unit]
+Description=Enapter WiFi Watchdog Service
+Wants=enapter-wifi-watchdog.timer
+ConditionPathExists=/user/etc/enapter/rwfs
+ConditionPathExists=/user/etc/enapter/enapter-wifi-watchdog.env
+StartLimitIntervalSec=0
+
+[Service]
+EnvironmentFile=-/user/etc/enapter/enapter-wifi-watchdog.env
+EnvironmentFile=-/user/etc/enapter/enapter-services-overrides.env
+Type=oneshot
+RemainAfterExit=false
+
+ExecStart=/usr/bin/enapter-wifi-watchdog
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,138 @@
+set nocompatible
+autocmd!
+
+set encoding=utf-8
+
+set swapfile
+set directory=~/.vim/swap//
+
+" protect against crash-during-write
+set writebackup
+" but do not persist backup after successful write
+set nobackup
+" use rename-and-write-new method whenever safe
+set backupcopy=auto
+" consolidate the writebackups -- not a big
+" deal either way, since they usually get deleted
+set backupdir=~/.vim/backup//
+
+" persist the undo tree for each file
+set undofile
+set undodir=~/.vim/undo//
+
+syntax enable
+set nomodeline         " Modelines (comments that set vim options on a per-file basis)
+set hidden             " Allow unsaved background buffers
+set autoread           " Automatically reload changes if detected
+set history=10000      " Number of things to remember in history
+set undolevels=700     " More undo levels
+set confirm            " Confirmation instead of fails on e.g. :q
+set clipboard+=unnamed " Yanks go on clipboard instead
+set autowrite          " Writes on make/shell commands
+set timeoutlen=500     " Time to wait for a command
+set ttimeoutlen=100
+set showmode           " Show mode at the bottom
+set infercase          " Completion recognizes capitalization
+set shortmess+=A       " Don't bother me when a swapfile exists
+set shortmess+=c       " don't give |ins-completion-menu| messages.
+set updatetime=300
+set ttyfast
+set diffopt+=internal,algorithm:patience
+
+" Searching
+set ignorecase  " Case insensitive search
+set smartcase   " Non-case sensitive search if contains upper
+set incsearch   " While typing a search command, show where the pattern
+set hlsearch    " Enable search highlighting
+nohlsearch      " but do not highlight last search on startup
+set wildignore+=*.o,*.obj,*.exe,*.so,*.dll,*.pyc,.svn,.hg,.bzr,.git,.sass-cache,*.class
+set wildignore+=*.DS_Store
+
+" Disable Sounds
+set noerrorbells
+set novisualbell
+set t_vb=
+
+" Mouse
+set mousehide   " Hide mouse after chars typed
+set mouse=a     " Mouse in all mode
+set mouseshape=s:udsizing,m:no " turn to a sizing arrow over the status liness
+
+" Complete options
+set complete+=U
+
+set ruler           " Show row/col and percentage
+set number          " Line numbers on
+set nowrap          " Line wrapping off
+set laststatus=2    " Always show the statusline
+set cmdheight=1
+set signcolumn=yes
+set showmatch       " Show matching brackets.
+set matchtime=2     " How many tenths of a second to blink
+set showcmd         " Show command in the last line
+set showtabline=2   " Show tabline only if there are at least two tab pages
+set colorcolumn=120
+set background=dark
+
+set expandtab
+set tabstop=2
+set softtabstop=2
+set shiftwidth=2
+set backspace=indent,eol,start " make backspace work like most other apps
+set cindent     " Automatic program indenting
+set autoindent  " Carry over indenting from previous line
+set smarttab
+set wrap            " http://vimcasts.org/episodes/soft-wrapping-text/
+set linebreak       " Break long lines by word, not char
+set list            " display unprintable characters
+set listchars=tab:▸\ ,extends:›,precedes:‹,nbsp:×,trail:· " Unicode characters for various things
+set formatoptions=crqln1   " :h fo-table
+
+" Theme customization
+highlight SignColumn guibg=NONE ctermbg=NONE
+highlight LineNr guifg=darkgrey ctermfg=darkgrey
+highlight ColorColumn guibg=darkgrey ctermbg=darkgrey
+highlight lCursor guifg=NONE guibg=Cyan
+
+" Show ↪ at the beginning of wrapped lines
+if has("linebreak")
+  let &sbr = nr2char(8618).' '
+endif
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+" Bindings
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+" Set leader to ,
+" Note: This line MUST come before any <leader> mappings
+let mapleader=","
+
+" Fixes common typos
+command! W w
+command! Q q
+map <F1> <Esc>
+imap <F1> <Esc>
+map Q  <silent>
+map q: <silent>
+
+" Reselect after indenting
+vnoremap < <gv
+vnoremap > >gv
+
+" Search result always at the center
+nmap n nzz
+nmap N Nzz
+nmap * *zz
+nmap # #zz
+nmap g* g*zz
+nmap g# g#zz
+
+" Don't skip wrap lines
+noremap j gj
+noremap k gk
+
+" key `Tab` -- switch between current/prev buffers
+nnoremap <Tab> <C-^>
+
+" key `<,<space>>` -- clean search hl
+nmap <leader><space> :nohlsearch<cr>

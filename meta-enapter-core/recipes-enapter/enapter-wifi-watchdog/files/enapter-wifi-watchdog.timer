@@ -1,0 +1,9 @@
+[Unit]
+Description=Enapter WiFi Watchdog Timer Service
+
+[Timer]
+Unit=enapter-wifi-watchdog.service
+OnCalendar=*-*-* *:00/05:00
+
+[Install]
+WantedBy=timers.target

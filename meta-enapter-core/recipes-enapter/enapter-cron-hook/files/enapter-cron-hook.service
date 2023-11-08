@@ -1,0 +1,17 @@
+[Unit]
+Description=Enapter Cron Hook Service
+Wants=enapter-cron-hook.timer
+ConditionPathExists=/user/etc/enapter/rwfs
+ConditionFileIsExecutable=/user/bin/enapter-cron-hook
+StartLimitIntervalSec=0
+
+[Service]
+EnvironmentFile=/etc/enapter/enapter-platform-common.env
+EnvironmentFile=-/user/etc/enapter/enapter-services-overrides.env
+Type=oneshot
+RemainAfterExit=false
+
+ExecStart=/user/bin/enapter-cron-hook
+
+[Install]
+WantedBy=multi-user.target default.target

@@ -1,0 +1,25 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
+# SPDX-License-Identifier: Apache-2.0
+
+user_fs_label="enp-data-disk"
+user_fs_mountpoint="/user"
+user_disk_type="auto"
+disk_opts="defaults,rw,nodev,nosuid"
+
+user_disk_path="/dev/disk/by-label/$user_fs_label"
+
+# create mountpoint if not exists
+test -d "$user_fs_mountpoint" || mkdir -p "$user_fs_mountpoint"
+
+mount "$user_disk_path" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mountpoint"
+
+touch "$user_fs_mountpoint/it_works"
+
+cp /proc/vmcore "$user_fs_mountpoint/dump"
+
+sync; sync; sync
+
+umount "$user_fs_mountpoint"
+
+reboot -f

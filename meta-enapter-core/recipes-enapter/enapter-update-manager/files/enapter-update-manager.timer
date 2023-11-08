@@ -1,0 +1,9 @@
+[Unit]
+Description=Enapter Update Manager Timer Service
+
+[Timer]
+Unit=enapter-update-manager.service
+OnCalendar=*-*-* *:00/5:00
+
+[Install]
+WantedBy=timers.target

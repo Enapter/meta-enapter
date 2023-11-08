@@ -1,0 +1,95 @@
+#!/bin/bash
+# SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
+# SPDX-License-Identifier: Apache-2.0
+
+set -o errexit
+
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+OS_FILES="EFI/enapter/bzImage
+EFI/enapter/rootfs.img
+EFI/enapter/initrd.img
+EFI/enapter/images.img
+EFI/BOOT/mmx64.efi
+EFI/BOOT/grub.cfg
+EFI/BOOT/unicode.pf2
+EFI/BOOT/BOOTX64.EFI
+EFI/BOOT/grubx64.efi
+EFI/BOOT/grubenv
+Enapter.cer"
+
+info() {
+  echo "[INFO] $1"
+  echo
+}
+
+fatal() {
+  echo 1>&2
+  echo -e "${RED}[FATAL] $1${NC}" 1>&2
+  echo 1>&2
+  exit 1
+}
+
+install() {
+    disk_boot_label="enp-os"
+    hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
+
+    boot_mount="/boot"
+    hdd_boot_mount="/mnt/boot"
+
+    lsblk -P -o "MOUNTPOINT,LABEL" | grep "MOUNTPOINT=\"$boot_mount\" LABEL=\"enp-os-usb\"" > /dev/null || {
+      lsblk -P -p -o "NAME,SIZE,MOUNTPOINT,LABEL"
+      fatal "Enapter Linux seems to be already installed, please review partitions and mounts."
+    }
+
+    if [[ ! -L "$hdd_boot_device" ]]; then
+      fatal "Partition with label enp-os (installation disk) not found, please do Enapter Gateway setup first."
+    fi
+
+    while true; do
+      read -p "Are you sure you want to proceed with installation Enapter Linux on HDD? (y/n) " yn
+
+      case $yn in 
+        [yY] ) info "Ok, we will proceed";
+          break;;
+        [nN] ) info "Exiting...";
+          exit;;
+        * ) info "Invalid response, please use (y/n).";
+          exit 1;;
+      esac
+    done
+
+    info "Mounting HDD boot partition"
+    mkdir -p ${hdd_boot_mount}
+    mountpoint -q ${hdd_boot_mount} || mount -v ${hdd_boot_device} ${hdd_boot_mount}
+
+    for f in $OS_FILES;
+    do
+      if [[ -f "$hdd_boot_mount/$f" ]]; then
+        fatal "Enapter Linux seems to be already installed on HDD disk (/mnt/boot), but system booted from USB. If you want to overwrite installed files, please remove them manually."
+      fi
+    done
+
+    if [[ ! -w ${hdd_boot_mount} ]]; then
+      fatal "HDD boot partition is not available for writing. Please check logs above for more details."
+    fi
+
+    info "Copying system files, please wait..."
+
+    for f in $OS_FILES;
+    do
+      mkdir -v -p "$hdd_boot_mount/$(dirname "$f")"
+      cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy $f file, aborting installation halfway. Please do cleanup before reboot."
+    done
+
+    info "Syncing disks"
+    sync; sync; sync
+
+    info "Unmounting HDD boot partition"
+    umount ${hdd_boot_mount} || info "Failed to unmount HDD boot partition, but should be OK."
+
+    info "Enapter Linux successfully installed on HDD disk, please remove installation media (USB stick) and reboot PC."
+}
+
+install

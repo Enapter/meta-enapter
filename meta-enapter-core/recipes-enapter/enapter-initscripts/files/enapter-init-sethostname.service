@@ -1,0 +1,14 @@
+[Unit]
+Description=Enapter Set Hostname Init Service
+DefaultDependencies=no
+Requires=local-fs.target systemd-hostnamed.service
+After=local-fs.target systemd-hostnamed.service
+Before=getty-pre.target avahi-daemon.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/enapter-init-sethostname
+RemainAfterExit=yes
+
+[Install]
+WantedBy=local-fs.target

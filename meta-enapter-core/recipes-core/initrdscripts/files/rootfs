@@ -1,0 +1,279 @@
+#!/bin/sh
+# SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
+# SPDX-License-Identifier: Apache-2.0
+
+rootfs_enabled() {
+    return 0
+}
+
+wait_for_device() {
+    timeout=15
+    device="$1"
+
+    debug "Waiting device $device"
+    while [ "$timeout" -gt 0 ] && [ ! -e "$device" ]; do
+        timeout=$((timeout-1))
+        sleep 1
+    done
+
+    if [ ! -e "$device" ]; then
+        fatal "timed out waiting ${device}"
+    fi
+}
+
+do_patch_script() {
+    rootfs_patch_script="patch_rootfs.sh"
+    root_mount="$1"
+    boot_mount="$2"
+
+    if [ -x "$boot_mount/$rootfs_patch_script" ]; then
+        "$boot_mount/$rootfs_patch_script" "$root_mount" "$boot_mount" || true
+    fi
+}
+
+do_maybe_reset() {
+    reset_fs_label="enp-data-disk-reset"
+    disk_to_reset="/dev/disk/by-label/$reset_fs_label"
+
+    if [ -L "$disk_to_reset" ] ; then
+        do_reset "$disk_to_reset"
+    fi
+}
+
+do_reset() {
+    part="$1"
+    label="enp-data-disk"
+
+    wipefs -f -a "$part"
+    udevadm settle || sleep 3
+
+    i=1
+    while [ "${i}" -le 5 ]; do
+        mkfs -t ext4 -q -F -m0 -L "$label" "$part" && return 0 || true
+        echo >&2 "$part mkfs failed, looks mounted (attemp $i)"
+        sleep 2
+        umount "$part" || true
+
+        i=$((i + 1))
+    done
+
+    echo >&2 "$part mkfs failed, retries exausted"
+    return 1
+}
+
+do_update() {
+    boot_mount="$1"
+
+    kernel_path="EFI/enapter/bzImage"
+    kernel_backup_path="$kernel_path.backup"
+    kernel_update_path="$kernel_path.update"
+
+    root_fs_image_path="EFI/enapter/rootfs.img"
+    root_fs_image_backup_path="$root_fs_image_path.backup"
+    root_fs_image_update_path="$root_fs_image_path.update"
+
+    initram_fs_image_path="EFI/enapter/initrd.img"
+    initram_fs_image_backup_path="$initram_fs_image_path.backup"
+    initram_fs_image_update_path="$initram_fs_image_path.update"
+
+    images_fs_image_path="EFI/enapter/images.img"
+    images_fs_image_backup_path="$images_fs_image_path.backup"
+    images_fs_image_update_path="$images_fs_image_path.update"
+
+    perform_reboot=0
+    updated=0
+
+    debug "Checking for available updates"
+
+    if [ -e "$boot_mount/$kernel_update_path" ]; then
+        debug "Kernel update file found, updating kernel ..."
+        mount -v -o remount,rw "$boot_mount"
+        mv -v -f "$boot_mount/$kernel_path" "$boot_mount/$kernel_backup_path"
+        sync; sync; sync
+        mv -v -f "$boot_mount/$kernel_update_path" "$boot_mount/$kernel_path"
+        sync; sync; sync
+        perform_reboot=1
+        updated=1
+    fi
+
+    if [ -e "$boot_mount/$root_fs_image_update_path" ]; then
+        debug "Rootfs update file found, updating rootfs ..."
+        mount -v -o remount,rw "$boot_mount"
+        mv -v -f "$boot_mount/$root_fs_image_path" "$boot_mount/$root_fs_image_backup_path"
+        sync; sync; sync
+        mv -v -f "$boot_mount/$root_fs_image_update_path" "$boot_mount/$root_fs_image_path"
+        sync; sync; sync
+        updated=1
+    fi
+
+    if [ -e "$boot_mount/$images_fs_image_update_path" ]; then
+        debug "Images update file found, updating images ..."
+        mount -o remount,rw "$boot_mount"
+        mv -f "$boot_mount/$images_fs_image_path" "$boot_mount/$images_fs_image_backup_path"
+        sync; sync; sync
+        mv -f "$boot_mount/$images_fs_image_update_path" "$boot_mount/$images_fs_image_path"
+        sync; sync; sync
+        updated=1
+    fi
+
+    if [ -e "$boot_mount/$initram_fs_image_update_path" ]; then
+        debug "Initramfs update file found, updating initramfs ..."
+        mount -v -o remount,rw "$boot_mount"
+        mv -v -f "$boot_mount/$initram_fs_image_path" "$boot_mount/$initram_fs_image_backup_path"
+        sync; sync; sync
+        mv -v -f "$boot_mount/$initram_fs_image_update_path" "$boot_mount/$initram_fs_image_path"
+        sync; sync; sync
+        perform_reboot=1
+        updated=1
+    fi
+
+    if [ "$updated" -ne 0 ]; then
+        info "Some files was updated"
+
+        info "Syncing disks"
+        sync; sync; sync
+
+        mount -o remount,ro "$boot_mount" || {
+            info "ERROR: remount boot partition to RO mode failed, rebooting"
+            reboot -f
+        }
+
+        if [ "$perform_reboot" -ne 0 ]; then
+            info "Kernel or initramfs was updated, rebooting"
+            reboot -f
+        else
+            info "No reboot was requested, continuing"
+        fi
+    fi
+}
+
+rootfs_run() {
+    usb_boot_label="enp-os-usb"
+    disk_boot_label="enp-os"
+
+    usb_boot_device="/dev/disk/by-label/$usb_boot_label"
+    hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
+
+    boot_mount="/boot"
+    root_ro_mount="/overlay_ro"
+    root_rw_mount="/overlay_rw"
+
+    images_ro_mount="/images"
+
+    overlayfs_upperdir="$root_rw_mount/upperdir"
+    overlayfs_workdir="$root_rw_mount/work"
+
+    load_kernel_module overlay
+    load_kernel_module squashfs
+
+    if [ -z "$ROOTFS_DIR" ]; then
+        fatal "WARNING: No Rootfs variable"
+        return
+    fi
+
+    if [ -d "$ROOTFS_DIR/dev" ]; then
+        fatal "WARNING: Rootfs already mounted"
+        return
+    fi
+
+    mkdir -p "$boot_mount"
+
+    boot_device=""
+
+    if [ -n "$bootparam_root" ]; then
+        debug "Mounting $bootparam_root..."
+
+        if [ "$(echo "$bootparam_root" | cut -c1-5)" = "UUID=" ]; then
+            root_uuid=$(echo "$bootparam_root" | cut -c6-)
+            boot_device="/dev/disk/by-uuid/$root_uuid"
+        elif [ "$(echo "$bootparam_root" | cut -c1-9)" = "PARTUUID=" ]; then
+            root_partuuid=$(echo "$bootparam_root" | cut -c10-)
+            boot_device="/dev/disk/by-partuuid/$root_partuuid"
+        elif [ "$(echo "$bootparam_root" | cut -c1-10)" = "PARTLABEL=" ]; then
+            root_partlabel=$(echo "$bootparam_root" | cut -c11-)
+            boot_device="/dev/disk/by-partlabel/$root_partlabel"
+        elif [ "$(echo "$bootparam_root" | cut -c1-6)" = "LABEL=" ]; then
+            root_label=$(echo "$bootparam_root" | cut -c7-)
+            boot_device="/dev/disk/by-label/$root_label"
+        else
+            fatal "ERROR: Failed to find boot device"
+        fi
+    else
+        if [ -e "$usb_boot_device" ]; then
+            info "Mounting USB boot device"
+            boot_device="$usb_boot_device"
+        elif [ -e "$hdd_boot_device" ]; then
+            info "Mounting HDD boot device"
+            boot_device="$hdd_boot_device"
+        else
+            fatal "ERROR: Failed to find boot device"
+        fi
+    fi
+
+    wait_for_device "$boot_device"
+    fsck.vfat -n "$boot_device"
+    mount "$boot_device" -o ro "$boot_mount" || fatal "Failed to mount boot device"
+
+    debug "Boot device mounted"
+
+    if [ -z "$bootparam_usebackup" ]; then
+        do_update "$boot_mount"
+    fi
+
+    do_maybe_reset || info "[!] Factory reset failed"
+
+    root_fs_image_path="$boot_mount/EFI/enapter/rootfs.img"
+    if [ -n "$bootparam_usebackup" ]; then
+        if [ -e "$root_fs_image_path.backup" ]; then
+            info "[!] Using rootfs.img.backup"
+            root_fs_image_path="$root_fs_image_path.backup"
+        else
+            info "[!] Using rootfs.img"
+        fi
+    fi
+
+
+    images_fs_image_path="$boot_mount/EFI/enapter/images.img"
+    if [ -n "$bootparam_usebackup" ]; then
+        if  [ -e "$images_fs_image_path.backup" ]; then
+            info "[!] Using images.img.backup"
+            images_fs_image_path="$images_fs_image_path.backup"
+        else
+            info "[!] Using images.img"
+        fi
+    fi
+
+    mkdir -p "$root_ro_mount"
+    wait_for_device /dev/loop0
+    mount -o loop -t squashfs "$root_fs_image_path" "$root_ro_mount"
+
+    debug "rootfs squashfs mounted"
+
+    mkdir -p "$images_ro_mount"
+    mount -o loop -t squashfs "$images_fs_image_path" "$images_ro_mount"
+
+    debug "images squashfs mounted"
+
+    mkdir -p "$root_rw_mount"
+    mount -o rw,noatime -t tmpfs tmpfs "$root_rw_mount" || fatal "Failed to mount RW rootfs"
+
+    debug "overlayfs/rw mounted"
+
+    mkdir -p "$root_rw_mount/upperdir" "$root_rw_mount/work"
+    mount -o "lowerdir=$root_ro_mount,upperdir=$overlayfs_upperdir,workdir=$overlayfs_workdir" -t overlay overlay "$ROOTFS_DIR" || fatal "Failed to mount overlayfs root fs"
+
+    debug "overlayfs mounted"
+
+    if [ -z "$bootparam_usebackup" ]; then
+        do_patch_script "$ROOTFS_DIR" "$boot_mount"
+    fi
+
+    mkdir -p "$ROOTFS_DIR/dev"
+
+    # Add links to rootfs
+    mkdir -p "$ROOTFS_DIR/$boot_mount" "$ROOTFS_DIR/$root_ro_mount" "$ROOTFS_DIR/$root_rw_mount" "$ROOTFS_DIR/$images_ro_mount"
+    mount --bind "$boot_mount" "$ROOTFS_DIR/$boot_mount"
+    mount --bind "$root_ro_mount" "$ROOTFS_DIR/$root_ro_mount"
+    mount --bind "$root_rw_mount" "$ROOTFS_DIR/$root_rw_mount"
+    mount --bind "$images_ro_mount" "$ROOTFS_DIR/$images_ro_mount"
+}

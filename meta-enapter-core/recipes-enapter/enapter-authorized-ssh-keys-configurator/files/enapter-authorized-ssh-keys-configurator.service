@@ -1,0 +1,19 @@
+[Unit]
+Description=Enapter Authorized SSH Keys Service
+ConditionPathExists=/user/etc/enapter/rwfs
+DefaultDependencies=no
+
+Before=network-pre.target
+Wants=network-pre.target
+
+Wants=systemd-modules-load.service local-fs.target
+After=systemd-modules-load.service local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/enapter-authorized-ssh-keys-configurator
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

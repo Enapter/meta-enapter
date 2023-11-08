@@ -1,0 +1,11 @@
+[Unit]
+Description=Enapter Set Banner Service
+DefaultDependencies=no
+After=enapter-init-sethostname.service local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/enapter-set-banner
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Enapter Swap Init Service
+DefaultDependencies=no
+Before=local-fs.target
+Wants=local-fs-pre.target
+After=enapter-init-mount-fs.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/enapter-init-mkswap
+RemainAfterExit=yes
+
+[Install]
+WantedBy=local-fs.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=Enapter Persistent Journal Storage Bind
+ConditionPathExists=/user/etc/enapter/rwfs
+DefaultDependencies=no
+
+Wants=enapter-journald-persistence.service
+After=enapter-journald-persistence.service
+Before=umount.target
+Conflicts=umount.target
+
+[Mount]
+What=/user/var/log/journal
+Where=/var/log/journal
+Type=none
+Options=bind
+
+[Install]
+WantedBy=multi-user.target

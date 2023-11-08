@@ -1,0 +1,58 @@
+[Unit]
+Description=Prometheus Node Exporter Service
+ConditionPathExists=/user/etc/enapter/rwfs
+After=enapter-podman-prepare.service
+Requires=enapter-podman-prepare.service
+StartLimitIntervalSec=0
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+Type=forking
+
+KillMode=mixed
+Restart=on-failure
+TimeoutStopSec=30
+RestartSec=10
+
+ExecStartPre=/bin/rm -f %t/container-%N.pid %t/container-%N.ctr-id
+
+ExecStart=/usr/bin/podman run \
+          --conmon-pidfile %t/container-%N.pid \
+          --cidfile %t/container-%N.ctr-id \
+          --detach \
+          --rm \
+          --log-driver=journald \
+          --log-opt=tag="{{.Name}}" \
+          --replace \
+          --name %N \
+          --net="host" \
+          --pid="host" \
+          --volume "/:/host:ro,rslave" \
+          prometheus-node-exporter:latest \
+          --path.rootfs=/host \
+          --web.disable-exporter-metrics \
+          --collector.disable-defaults \
+          --collector.loadavg \
+          --collector.cpu \
+          --no-collector.cpu.guest \
+          --collector.wifi \
+          --collector.meminfo \
+          --collector.filesystem \
+          --collector.dmi \
+          --collector.netdev \
+          --collector.netdev.address-info \
+          --collector.netdev.device-exclude="^(veth|cni-podman|podman)" \
+          --collector.netclass \
+          --collector.netclass.ignored-devices="^(veth|cni-podman|podman)" \
+          --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|user/var/lib/containers/storage/overlay-containers/.+)($|/)" \
+          --collector.os \
+          --collector.stat \
+          --collector.network_route \
+          --web.listen-address="10.88.0.1:9100"
+
+ExecStop=/usr/bin/podman stop --ignore --cidfile %t/container-%N.ctr-id -t 10
+
+PIDFile=%t/container-%N.pid
+
+[Install]
+WantedBy=multi-user.target default.target

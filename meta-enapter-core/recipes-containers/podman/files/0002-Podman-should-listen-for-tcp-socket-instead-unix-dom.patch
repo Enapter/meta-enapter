@@ -1,0 +1,49 @@
+From 9521800a1e4b17f1a7121bdee7c9b1a31524838c Mon Sep 17 00:00:00 2001
+From: Dmitry Myaskovskiy <dmitry@enapter.com>
+Date: Fri, 5 Aug 2022 23:12:31 +0300
+Subject: [PATCH] Podman should listen for tcp socket instead unix domain
+
+Upstream-Status: Inappropriate [Enapter specific]
+---
+ src/import/contrib/systemd/system/podman.service.in | 4 +---
+ src/import/contrib/systemd/system/podman.socket     | 3 +--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/src/import/contrib/systemd/system/podman.service.in b/src/import/contrib/systemd/system/podman.service.in
+index 9a7e04fd4..53fdbc7bb 100644
+--- a/src/import/contrib/systemd/system/podman.service.in
++++ b/src/import/contrib/systemd/system/podman.service.in
+@@ -1,7 +1,5 @@
+ [Unit]
+ Description=Podman API Service
+-Requires=podman.socket
+-After=podman.socket
+ Documentation=man:podman-system-service(1)
+ StartLimitIntervalSec=0
+ 
+@@ -9,7 +7,7 @@ StartLimitIntervalSec=0
+ Type=exec
+ KillMode=process
+ Environment=LOGGING="--log-level=info"
+-ExecStart=@@PODMAN@@ $LOGGING system service
++ExecStart=@@PODMAN@@ $LOGGING system service --time=0 tcp:127.0.0.1:8910
+ 
+ [Install]
+ WantedBy=default.target
+diff --git a/src/import/contrib/systemd/system/podman.socket b/src/import/contrib/systemd/system/podman.socket
+index 397058ee4..be827420b 100644
+--- a/src/import/contrib/systemd/system/podman.socket
++++ b/src/import/contrib/systemd/system/podman.socket
+@@ -3,8 +3,7 @@ Description=Podman API Socket
+ Documentation=man:podman-system-service(1)
+ 
+ [Socket]
+-ListenStream=%t/podman/podman.sock
+-SocketMode=0660
++ListenStream=127.0.0.1:8910
+ 
+ [Install]
+ WantedBy=sockets.target
+-- 
+2.36.1
+

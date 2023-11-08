@@ -1,0 +1,47 @@
+From 2ccaa33a880170a689e7767c16acafddf1a1e0b3 Mon Sep 17 00:00:00 2001
+From: Dmitry Myaskovskiy <dmitry@enapter.com>
+Date: Thu, 26 Oct 2023 13:35:42 +0200
+Subject: [PATCH] Add confirmation dialog on connection deactivation
+
+Upstream-Status: Inappropriate [Enapter specific]
+---
+ src/nmtui/nmtui-connect.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/src/nmtui/nmtui-connect.c b/src/nmtui/nmtui-connect.c
+index 0dfbf6ac20..2af1131174 100644
+--- a/src/nmtui/nmtui-connect.c
++++ b/src/nmtui/nmtui-connect.c
+@@ -289,6 +289,7 @@ listbox_activated(NmtNewtListbox *listbox, gpointer user_data)
+     NMDevice                 *device;
+     NMObject                 *specific_object;
+     NMActiveConnection       *ac;
++    int                      choice;
+ 
+     if (!nmt_connect_connection_list_get_selection(list,
+                                                    &connection,
+@@ -297,10 +298,19 @@ listbox_activated(NmtNewtListbox *listbox, gpointer user_data)
+                                                    &ac))
+         return;
+ 
+-    if (ac)
++    if (ac) {
++        choice = nmt_newt_choice_dialog(_("Cancel"),
++                    _("Deactivate"),
++                    _("Are you sure you want to deactivate the connection '%s'?"),
++                    nm_connection_get_id(NM_CONNECTION(connection)));
++        if (choice == 1)
++            return;
++
+         deactivate_connection(ac);
+-    else
++    }
++    else {
+         activate_connection(connection, device, specific_object);
++    }
+ }
+ 
+ static void
+-- 
+2.39.2
+

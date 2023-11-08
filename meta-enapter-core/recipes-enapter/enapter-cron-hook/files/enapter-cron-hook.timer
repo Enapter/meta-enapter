@@ -1,0 +1,9 @@
+[Unit]
+Description=Enapter Cron Hook Timer Service
+
+[Timer]
+Unit=enapter-cron-hook.service
+OnCalendar=*-*-* *:00/01:00
+
+[Install]
+WantedBy=timers.target

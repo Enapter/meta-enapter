@@ -1,0 +1,69 @@
+From 81506cd3ad9db9bc42ec952c7671735259e16c22 Mon Sep 17 00:00:00 2001
+From: Dmitry Myaskovskiy <dmitry@enapter.com>
+Date: Wed, 25 Aug 2021 22:10:07 +0300
+Subject: [PATCH] Do not build filters and docs
+
+---
+ Makefile.am  | 24 +++---------------------
+ configure.ac |  2 +-
+ 2 files changed, 4 insertions(+), 22 deletions(-)
+
+diff --git a/Makefile.am b/Makefile.am
+index 5bc4cae..510a525 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -4,35 +4,17 @@
+ 
+ EXTRA_DIST = BUGS COPYING INSTALL README.md  src/rlwrap.h src/redblack.h src/malloc_debug.h\
+              src/completion.rb doc/rlwrap.man.in test/testclient test/testit\
+-             completions/testclient completions/coqtop\
+-             filters/README filters/RlwrapFilter.pm filters/RlwrapFilter.3pm filters/count_in_prompt filters/pipeto\
+-             filters/logger filters/null filters/unbackspace filters/pipeline filters/ftp_filter filters/handle_hotkeys filters/history_format\
+-             filters/simple_macro filters/template filters/scrub_prompt filters/paint_prompt filters/censor_passwords filters/listing\
+-             filters/paint_prompt.py filters/handle_hotkeys.py filters/logger.py filters/pipeto.py\
+-             filters/rlwrapfilter.py filters/null.py filters/censor_passwords.py filters/edit_history\
+-             filters/count_in_prompt.py filters/ftp_filter.py  filters/debug_null filters/handle_sigwinch filters/outfilter\
+-             filters/makefilter filters/dissect_prompt
++             completions/testclient completions/coqtop
+ 
+ 
+ 
+ TESTS      = test/testit
+-SUBDIRS    = doc src filters
++SUBDIRS    = src
+ 
+-nobase_pkgdata_DATA  = completions/testclient completions/coqtop\
+-		       filters/README filters/RlwrapFilter.pm filters/RlwrapFilter.3pm filters/count_in_prompt filters/pipeto\
+-                       filters/logger filters/null filters/unbackspace filters/pipeline filters/ftp_filter filters/handle_hotkeys filters/history_format\
+-                       filters/simple_macro filters/template filters/scrub_prompt filters/paint_prompt filters/censor_passwords filters/listing\
+-                       filters/paint_prompt.py filters/handle_hotkeys.py filters/logger.py filters/pipeto.py\
+-                       filters/rlwrapfilter.py filters/null.py filters/censor_passwords.py filters/edit_history\
+-                       filters/count_in_prompt.py filters/ftp_filter.py  filters/debug_null filters/handle_sigwinch filters/outfilter\
+-                       filters/makefilter filters/dissect_prompt
++nobase_pkgdata_DATA  = completions/testclient completions/coqtop
+ 
+ 
+ 
+ clean-local: 
+ 	rm -f *~ 
+ 
+-
+-install-data-hook:
+-	chmod a+x $(DESTDIR)$(pkgdatadir)/filters/* 
+- 
+diff --git a/configure.ac b/configure.ac
+index 72e5440..3fc4a22 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -95,7 +95,7 @@ test x$opt_homegrown_redisplay = xyes && AC_DEFINE(HOMEGROWN_REDISPLAY,1 ,[Defin
+ 
+ test x$opt_multibyte_aware  = xyes && AC_DEFINE(MULTIBYTE_AWARE,1 ,Define to 1 to be aware of  wide chars in prompts)
+ 
+-AC_CONFIG_FILES([Makefile filters/Makefile doc/Makefile src/Makefile doc/rlwrap.man]) 
++AC_CONFIG_FILES([Makefile src/Makefile]) 
+ 
+ # Checks for programs.
+ 
+-- 
+2.30.1
+

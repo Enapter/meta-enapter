@@ -1,0 +1,13 @@
+[Unit]
+Description=Enapter Mount FS Init Service
+DefaultDependencies=no
+Before=local-fs.target
+Wants=local-fs-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/enapter-init-mount-fs
+RemainAfterExit=yes
+
+[Install]
+WantedBy=local-fs.target
