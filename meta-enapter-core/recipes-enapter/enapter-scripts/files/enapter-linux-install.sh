@@ -17,6 +17,7 @@ EFI/BOOT/unicode.pf2
 EFI/BOOT/BOOTX64.EFI
 EFI/BOOT/grubx64.efi
 EFI/BOOT/grubenv
+network.yaml
 Enapter.cer"
 
 info() {
@@ -79,8 +80,10 @@ install() {
 
     for f in $OS_FILES;
     do
-      mkdir -v -p "$hdd_boot_mount/$(dirname "$f")"
-      cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy $f file, aborting installation halfway. Please do cleanup before reboot."
+      if [[ -f "$boot_mount/$f" ]]; then
+        mkdir -v -p "$hdd_boot_mount/$(dirname "$f")"
+        cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy $f file, aborting installation halfway. Please do cleanup before reboot."
+      fi
     done
 
     info "Syncing disks"
