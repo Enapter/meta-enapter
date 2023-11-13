@@ -15,7 +15,7 @@ if [ -x $monit_bin ]; then
   echo "" > "$docker_compose_monit_file"
 fi
 
-/usr/bin/docker-compose -f /user/etc/docker-compose/docker-compose.yml ps --all --quiet | xargs --no-run-if-empty podman inspect | jq -r 'map([.Id, .Config.Labels."com.docker.compose.service", .Image, .ImageName]) [] | join(",")' | while IFS=, read -r id service image image_name; do
+/usr/bin/podman-compose -f /user/etc/docker-compose/docker-compose.yml ps --quiet 2>/dev/null | xargs --no-run-if-empty podman inspect | jq -r 'map([.Id, .Config.Labels."com.docker.compose.service", .Image, .ImageName]) [] | join(",")' | while IFS=, read -r id service image image_name; do
   image_name_fix=${image_name//\//_}
   image_name_fix=${image_name_fix//:/_}
   image_name_fix=${image_name_fix//./_}

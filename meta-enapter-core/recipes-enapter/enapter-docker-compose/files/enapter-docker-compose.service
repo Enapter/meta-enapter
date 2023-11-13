@@ -14,9 +14,9 @@ RestartSec=10
 Restart=on-failure
 ExecStartPre=/usr/bin/enapter-wait-for-ports "127.0.0.1:8910" 900
 ExecStartPre=/usr/bin/enapter-docker-compose-pre
-ExecStart=/usr/bin/docker-compose -f /user/etc/docker-compose/docker-compose.yml up -d --remove-orphans --renew-anon-volumes
+ExecStart=/usr/bin/podman-compose -f /user/etc/docker-compose/docker-compose.yml up -d --remove-orphans --renew-anon-volumes
 ExecStartPost=/usr/bin/enapter-docker-compose-post
-ExecStop=/usr/bin/docker-compose -f /user/etc/docker-compose/docker-compose.yml down --remove-orphans
+ExecStop=/usr/bin/podman-compose -f /user/etc/docker-compose/docker-compose.yml down --remove-orphans
 
 [Install]
 WantedBy=multi-user.target
