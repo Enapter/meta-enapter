@@ -4,7 +4,7 @@
 
 set -o errexit
 
-podman info
+podman info --debug
 
 podman ps
 
