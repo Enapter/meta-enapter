@@ -106,22 +106,13 @@ do_install() {
     install -m 0644 ${WORKDIR}/grubenv ${D}/boot/EFI/BOOT/grubenv
 }
 
-do_sign() {
-    if [ -f ${SECURE_BOOT_SIGNING_KEY} ] && [ -f ${SECURE_BOOT_SIGNING_CERT} ]; then
-        sbsign --key ${SECURE_BOOT_SIGNING_KEY} --cert ${SECURE_BOOT_SIGNING_CERT} ${D}${EFI_FILES_PATH}/${GRUB_IMAGE}
-        sbverify --cert ${SECURE_BOOT_SIGNING_CERT} ${D}${EFI_FILES_PATH}/${GRUB_IMAGE}.signed
-        mv ${D}${EFI_FILES_PATH}/${GRUB_IMAGE}.signed ${D}${EFI_FILES_PATH}/${GRUB_IMAGE}
-    fi
-}
+SIGNING_DIR ?= "${B}"
+SIGNING_BINARIES ?= "*.efi"
+SIGN_AFTER ?= "do_compile"
+SIGN_BEFORE ?= "do_deploy"
 
-addtask sign after do_install before do_deploy do_package
-
-# To include all available modules, add 'all' to GRUB_BUILDIN
-GRUB_BUILDIN ?= "boot linux ext2 fat serial part_msdos part_gpt normal \
-                 efi_gop iso9660 configfile search loadenv test"
-
-# 'xen_boot' is a module valid only for aarch64
-GRUB_BUILDIN:append:aarch64 = "${@bb.utils.contains('DISTRO_FEATURES', 'xen', ' xen_boot', '', d)}"
+# uefi-sign.bbclass defined in meta-intel layer
+inherit uefi-sign
 
 do_deploy() {
     install -m 644 ${WORKDIR}/git/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE} ${DEPLOYDIR}
