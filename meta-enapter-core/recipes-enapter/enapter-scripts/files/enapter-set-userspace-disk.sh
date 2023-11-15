@@ -57,7 +57,7 @@ sfdisk --delete "$disk" || true
 
 recovery_part="size=2048m name=$recovery_label type=L"
 boot_part="size=8192m name=$boot_label type=U"
-images_part="size=8192m name=$images_label type=L"
+images_part="size=16384m name=$images_label type=L"
 user_part="name=$user_label type=L"
 
 # shellcheck disable=SC2059
