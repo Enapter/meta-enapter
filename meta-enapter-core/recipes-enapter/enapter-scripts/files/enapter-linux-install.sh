@@ -7,19 +7,6 @@ set -o errexit
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-OS_FILES="EFI/enapter/bzImage
-EFI/enapter/rootfs.img
-EFI/enapter/initrd.img
-EFI/enapter/images.img
-EFI/BOOT/mmx64.efi
-EFI/BOOT/grub.cfg
-EFI/BOOT/unicode.pf2
-EFI/BOOT/BOOTX64.EFI
-EFI/BOOT/grubx64.efi
-EFI/BOOT/grubenv
-network.yaml
-Enapter.cer"
-
 info() {
   echo "[INFO] $1"
   echo
@@ -65,12 +52,15 @@ install() {
     mkdir -p ${hdd_boot_mount}
     mountpoint -q ${hdd_boot_mount} || mount -v ${hdd_boot_device} ${hdd_boot_mount}
 
-    for f in $OS_FILES;
-    do
-      if [[ -f "$hdd_boot_mount/$f" ]]; then
-        fatal "Enapter Linux seems to be already installed on HDD disk (/mnt/boot), but system booted from USB. If you want to overwrite installed files, please remove them manually."
+    os_files=$(find "$boot_mount" -type f)
+
+    while IFS= read -r f; do
+      if [[ -n "$f" ]]; then
+        if [[ -f "$hdd_boot_mount/$f" ]]; then
+          fatal "Enapter Linux seems to be already installed on HDD disk (/mnt/boot), but system booted from USB. If you want to overwrite installed files, please remove them manually."
+        fi
       fi
-    done
+    done <<< "$os_files"
 
     if [[ ! -w ${hdd_boot_mount} ]]; then
       fatal "HDD boot partition is not available for writing. Please check logs above for more details."
@@ -78,13 +68,14 @@ install() {
 
     info "Copying system files, please wait..."
 
-    for f in $OS_FILES;
-    do
-      if [[ -f "$boot_mount/$f" ]]; then
-        mkdir -v -p "$hdd_boot_mount/$(dirname "$f")"
-        cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy $f file, aborting installation halfway. Please do cleanup before reboot."
+    while IFS= read -r f; do
+      if [[ -n "$f" ]]; then
+        if [[ -f "$boot_mount/$f" ]]; then
+          mkdir -v -p "$hdd_boot_mount/$(dirname "$f")"
+          cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy $f file, aborting installation halfway. Please do cleanup before reboot."
+        fi
       fi
-    done
+    done <<< "$os_files"
 
     info "Syncing disks"
     sync; sync; sync

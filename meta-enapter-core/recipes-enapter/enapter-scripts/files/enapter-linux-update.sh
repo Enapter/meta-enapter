@@ -8,7 +8,6 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 UPDATE_FILES="bzImage
-images.img
 initrd.img
 rootfs.img
 grubx64.efi
@@ -108,8 +107,6 @@ update() {
     cp -vf "$tmp_dir/bzImage" "$boot_mount$efi_enapter/bzImage"
     sync; sync; sync
     cp -vf "$tmp_dir/initrd.img" "$boot_mount$efi_enapter/initrd.img"
-    sync; sync; sync
-    cp -vf "$tmp_dir/images.img" "$boot_mount$efi_enapter/images.img.update"
     sync; sync; sync
     cp -vf "$tmp_dir/rootfs.img" "$boot_mount$efi_enapter/rootfs.img.update"
     sync; sync; sync

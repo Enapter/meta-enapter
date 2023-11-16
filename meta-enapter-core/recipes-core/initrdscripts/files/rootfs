@@ -76,10 +76,6 @@ do_update() {
     initram_fs_image_backup_path="$initram_fs_image_path.backup"
     initram_fs_image_update_path="$initram_fs_image_path.update"
 
-    images_fs_image_path="EFI/enapter/images.img"
-    images_fs_image_backup_path="$images_fs_image_path.backup"
-    images_fs_image_update_path="$images_fs_image_path.update"
-
     perform_reboot=0
     updated=0
 
@@ -102,16 +98,6 @@ do_update() {
         mv -v -f "$boot_mount/$root_fs_image_path" "$boot_mount/$root_fs_image_backup_path"
         sync; sync; sync
         mv -v -f "$boot_mount/$root_fs_image_update_path" "$boot_mount/$root_fs_image_path"
-        sync; sync; sync
-        updated=1
-    fi
-
-    if [ -e "$boot_mount/$images_fs_image_update_path" ]; then
-        debug "Images update file found, updating images ..."
-        mount -o remount,rw "$boot_mount"
-        mv -f "$boot_mount/$images_fs_image_path" "$boot_mount/$images_fs_image_backup_path"
-        sync; sync; sync
-        mv -f "$boot_mount/$images_fs_image_update_path" "$boot_mount/$images_fs_image_path"
         sync; sync; sync
         updated=1
     fi
@@ -156,9 +142,8 @@ rootfs_run() {
 
     boot_mount="/boot"
     root_ro_mount="/overlay_ro"
+    layers_ro_mount_base_dir="/layers"
     root_rw_mount="/overlay_rw"
-
-    images_ro_mount="/images"
 
     overlayfs_upperdir="$root_rw_mount/upperdir"
     overlayfs_workdir="$root_rw_mount/work"
@@ -232,35 +217,39 @@ rootfs_run() {
         fi
     fi
 
-
-    images_fs_image_path="$boot_mount/EFI/enapter/images.img"
-    if [ -n "$bootparam_usebackup" ]; then
-        if  [ -e "$images_fs_image_path.backup" ]; then
-            info "[!] Using images.img.backup"
-            images_fs_image_path="$images_fs_image_path.backup"
-        else
-            info "[!] Using images.img"
-        fi
-    fi
-
     mkdir -p "$root_ro_mount"
     wait_for_device /dev/loop0
     mount -o loop -t squashfs "$root_fs_image_path" "$root_ro_mount"
 
     debug "rootfs squashfs mounted"
 
-    mkdir -p "$images_ro_mount"
-    mount -o loop -t squashfs "$images_fs_image_path" "$images_ro_mount"
+    root_additional_lowerdirs=""
+    layer_images=$(find "$boot/layers" -name "*.img")
 
-    debug "images squashfs mounted"
+    for layer_image in "$layer_images"; do
+        if [ -n "$layer_image" ]; then
+            layer_name=$(basename "$layer_image" ".img")
+            info "[!] Mounting $layer_name layer image"
+
+            mkdir -p "$layers_ro_mount_base_dir/$layer_name"
+            wait_for_device /dev/loop0
+            mount -o loop -t squashfs "$layer_image" "$layers_ro_mount_base_dir/$layer_name"
+
+            if [ -d "$layers_ro_mount_base_dir/$layer_name/rootfs" ]; then
+               root_additional_lowerdirs="$root_additional_lowerdirs:$layers_ro_mount_base_dir/$layer_name/rootfs"
+            fi
+        fi
+    done
 
     mkdir -p "$root_rw_mount"
     mount -o rw,noatime -t tmpfs tmpfs "$root_rw_mount" || fatal "Failed to mount RW rootfs"
 
     debug "overlayfs/rw mounted"
 
+    degub "rootfs overlayfs additional lowerdirs: $root_additional_lowerdirs"
+
     mkdir -p "$root_rw_mount/upperdir" "$root_rw_mount/work"
-    mount -o "lowerdir=$root_ro_mount,upperdir=$overlayfs_upperdir,workdir=$overlayfs_workdir" -t overlay overlay "$ROOTFS_DIR" || fatal "Failed to mount overlayfs root fs"
+    mount -o "lowerdir=$root_ro_mount$root_additional_lowerdirs,upperdir=$overlayfs_upperdir,workdir=$overlayfs_workdir" -t overlay overlay "$ROOTFS_DIR" || fatal "Failed to mount overlayfs root fs"
 
     debug "overlayfs mounted"
 
@@ -271,9 +260,19 @@ rootfs_run() {
     mkdir -p "$ROOTFS_DIR/dev"
 
     # Add links to rootfs
-    mkdir -p "$ROOTFS_DIR/$boot_mount" "$ROOTFS_DIR/$root_ro_mount" "$ROOTFS_DIR/$root_rw_mount" "$ROOTFS_DIR/$images_ro_mount"
+    mkdir -p "$ROOTFS_DIR/$boot_mount" "$ROOTFS_DIR/$root_ro_mount" "$ROOTFS_DIR/$root_rw_mount"
     mount --bind "$boot_mount" "$ROOTFS_DIR/$boot_mount"
     mount --bind "$root_ro_mount" "$ROOTFS_DIR/$root_ro_mount"
     mount --bind "$root_rw_mount" "$ROOTFS_DIR/$root_rw_mount"
-    mount --bind "$images_ro_mount" "$ROOTFS_DIR/$images_ro_mount"
+
+    for layer_image in "$layer_images"; do
+        if [ -n "$layer_image" ]; then
+            layer_name=$(basename "$layer_image" ".img")
+
+            if [ -d "$layers_ro_mount_base_dir/$layer_name" ]; then
+                mkdir -p "$ROOTFS_DIR$layers_ro_mount_base_dir/$layer_name"
+                mount --bind "$layers_ro_mount_base_dir/$layer_name" "$ROOTFS_DIR$layers_ro_mount_base_dir/$layer_name"
+            fi
+        fi
+    done
 }
