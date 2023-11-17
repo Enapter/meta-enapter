@@ -224,7 +224,7 @@ rootfs_run() {
     debug "rootfs squashfs mounted"
 
     root_additional_lowerdirs=""
-    layer_images=$(find "$boot/layers" -name "*.img")
+    layer_images=$(find "$boot_mount/layers" -name "*.img")
 
     for layer_image in "$layer_images"; do
         if [ -n "$layer_image" ]; then
@@ -232,7 +232,6 @@ rootfs_run() {
             info "[!] Mounting $layer_name layer image"
 
             mkdir -p "$layers_ro_mount_base_dir/$layer_name"
-            wait_for_device /dev/loop0
             mount -o loop -t squashfs "$layer_image" "$layers_ro_mount_base_dir/$layer_name"
 
             if [ -d "$layers_ro_mount_base_dir/$layer_name/rootfs" ]; then
@@ -246,7 +245,7 @@ rootfs_run() {
 
     debug "overlayfs/rw mounted"
 
-    degub "rootfs overlayfs additional lowerdirs: $root_additional_lowerdirs"
+    debug "rootfs overlayfs additional lowerdirs: $root_additional_lowerdirs"
 
     mkdir -p "$root_rw_mount/upperdir" "$root_rw_mount/work"
     mount -o "lowerdir=$root_additional_lowerdirs$root_ro_mount,upperdir=$overlayfs_upperdir,workdir=$overlayfs_workdir" -t overlay overlay "$ROOTFS_DIR" || fatal "Failed to mount overlayfs root fs"
