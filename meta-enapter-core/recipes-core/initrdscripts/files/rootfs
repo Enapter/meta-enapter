@@ -72,7 +72,7 @@ do_update() {
     root_fs_image_backup_path="$root_fs_image_path.backup"
     root_fs_image_update_path="$root_fs_image_path.update"
 
-    initram_fs_image_path="EFI/enapter/initrd.img"
+    initram_fs_image_path="EFI/enapter/initrd"
     initram_fs_image_backup_path="$initram_fs_image_path.backup"
     initram_fs_image_update_path="$initram_fs_image_path.update"
 

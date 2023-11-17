@@ -8,7 +8,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 UPDATE_FILES="bzImage
-initrd.img
+initrd
 rootfs.img
 grubx64.efi
 grub.cfg
@@ -99,14 +99,14 @@ update() {
 
     cp -vf "$boot_mount$efi_enapter/bzImage" "$boot_mount$efi_enapter/bzImage.backup"
     sync; sync; sync
-    cp -vf "$boot_mount$efi_enapter/initrd.img" "$boot_mount$efi_enapter/initrd.img.backup"
+    cp -vf "$boot_mount$efi_enapter/initrd" "$boot_mount$efi_enapter/initrd.backup"
     sync; sync; sync
 
     info "Copying system files, please wait..."
 
     cp -vf "$tmp_dir/bzImage" "$boot_mount$efi_enapter/bzImage"
     sync; sync; sync
-    cp -vf "$tmp_dir/initrd.img" "$boot_mount$efi_enapter/initrd.img"
+    cp -vf "$tmp_dir/initrd" "$boot_mount$efi_enapter/initrd"
     sync; sync; sync
     cp -vf "$tmp_dir/rootfs.img" "$boot_mount$efi_enapter/rootfs.img.update"
     sync; sync; sync
