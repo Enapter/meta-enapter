@@ -31,6 +31,7 @@ update() {
     opts="$2"
     disk_boot_label="enp-os"
     efi_enapter="/EFI/enapter"
+    layers="/layers"
     efi_boot="/EFI/BOOT"
     hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
     boot_mount="/boot"
@@ -94,6 +95,7 @@ update() {
     info "Removing backup files from previous update"
 
     rm -fv "$boot_mount$efi_enapter"/*.backup
+    rm -fv "$boot_mount$layers"/*.backup
 
     info "Creating backup, please wait"
 
@@ -111,16 +113,17 @@ update() {
     cp -vf "$tmp_dir/rootfs.img" "$boot_mount$efi_enapter/rootfs.img.update"
     sync; sync; sync
 
-    if [[ "$opts" == "--update-bootloader" ]]; then
-      info "Updating bootloader."
-
-      cp -vf "$tmp_dir/grubx64.efi" "$boot_mount$efi_boot/grubx64.efi"
+    if [[ -f "$tmp_dir/enapter.img" ]]; then
+      cp -vf "$tmp_dir/enapter.img" "$boot_mount$layers/enapter.img.update"
       sync; sync; sync
-      cp -vf "$tmp_dir/grub.cfg" "$boot_mount$efi_boot/grub.cfg"
-      sync; sync; sync
-    else
-      info "Skipping bootloader update."
     fi
+
+    info "Updating bootloader."
+
+    cp -vf "$tmp_dir/grubx64.efi" "$boot_mount$efi_boot/grubx64.efi"
+    sync; sync; sync
+    cp -vf "$tmp_dir/grub.cfg" "$boot_mount$efi_boot/grub.cfg"
+    sync; sync; sync
 
     info "Re-mounting boot partition as R/O"
     mount -v -o remount,ro ${boot_mount} || info "Failed to remount boot partition as R/O, but should be OK."
