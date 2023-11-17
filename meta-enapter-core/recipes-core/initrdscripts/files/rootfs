@@ -82,7 +82,7 @@ do_update() {
     debug "Checking for available updates"
 
     if [ -e "$boot_mount/$kernel_update_path" ]; then
-        debug "Kernel update file found, updating kernel ..."
+        info "Kernel update file found, updating kernel ..."
         mount -v -o remount,rw "$boot_mount"
         mv -v -f "$boot_mount/$kernel_path" "$boot_mount/$kernel_backup_path"
         sync; sync; sync
@@ -93,7 +93,7 @@ do_update() {
     fi
 
     if [ -e "$boot_mount/$root_fs_image_update_path" ]; then
-        debug "Rootfs update file found, updating rootfs ..."
+        info "Rootfs update file found, updating rootfs ..."
         mount -v -o remount,rw "$boot_mount"
         mv -v -f "$boot_mount/$root_fs_image_path" "$boot_mount/$root_fs_image_backup_path"
         sync; sync; sync
@@ -103,7 +103,7 @@ do_update() {
     fi
 
     if [ -e "$boot_mount/$initram_fs_image_update_path" ]; then
-        debug "Initramfs update file found, updating initramfs ..."
+        info "Initramfs update file found, updating initramfs ..."
         mount -v -o remount,rw "$boot_mount"
         mv -v -f "$boot_mount/$initram_fs_image_path" "$boot_mount/$initram_fs_image_backup_path"
         sync; sync; sync
@@ -112,6 +112,27 @@ do_update() {
         perform_reboot=1
         updated=1
     fi
+
+    layer_images=$(find "$boot_mount/layers" -name "*.img")
+
+    for layer_image in "$layer_images"; do
+        if [ -n "$layer_image" ]; then
+            layer_name=$(basename "$layer_image" ".img")
+            layer_image_update="$layer_image.update"
+            layer_image_backup="$layer_image.backup"
+
+            if [ -f "$layer_update" ]; then
+                info "Layer $layer_name update found, updating ..."
+
+                mount -v -o remount,rw "$boot_mount"
+                mv -v -f "$boot_mount/layers/$layer_image" "$boot_mount/layers/$layer_image_backup"
+                sync; sync; sync
+                mv -v -f "$boot_mount/layers/$layer_image_update" "$boot_mount/layers/$layer_image"
+                sync; sync; sync
+                updated=1
+            fi
+        fi
+    done
 
     if [ "$updated" -ne 0 ]; then
         info "Some files was updated"
