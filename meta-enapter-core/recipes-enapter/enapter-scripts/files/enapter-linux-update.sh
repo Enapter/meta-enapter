@@ -113,8 +113,8 @@ update() {
     cp -vf "$tmp_dir/rootfs.img" "$boot_mount$efi_enapter/rootfs.img.update"
     sync; sync; sync
 
-    if [[ -f "$tmp_dir/enapter.img" ]]; then
-      cp -vf "$tmp_dir/enapter.img" "$boot_mount$layers/enapter.img.update"
+    if [[ -f "$tmp_dir/enapter-iot.img" ]]; then
+      cp -vf "$tmp_dir/enapter-iot.img" "$boot_mount$layers/enapter-iot.img.update"
       sync; sync; sync
     fi
 
