@@ -5,9 +5,10 @@
 set -o errexit
 
 podman_storage_config="/etc/containers/storage.conf"
+layers_dir="/layers"
 
-if [[ -f "$podman_storage_config" ]]; then
-  layers=$(find "/layers" -maxdepth 1 -mindepth 1 -type d)
+if [[ -f "$podman_storage_config" && -d "$layers_dir" ]]; then
+  layers=$(find "$layers_dir" -maxdepth 1 -mindepth 1 -type d)
 
   for l in "$layers"; do
     if [[ -f "$l/images/overlay-images/images.lock" ]]; then
