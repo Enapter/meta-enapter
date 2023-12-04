@@ -49,3 +49,7 @@ load_images "$docker_compose_images_cache_dir"
 if [[ "$need_remount_ro" -eq 1 ]]; then
   mount -o remount,ro "$podman_user_ro_storage"
 fi
+
+if [ -x /user/bin/enapter-docker-compose-pre ]; then
+  /user/bin/enapter-docker-compose-pre || true
+fi
