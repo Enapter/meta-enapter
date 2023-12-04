@@ -26,3 +26,7 @@ podman ps
 if [ -x /user/bin/enapter-podman-pre-hook ]; then
   /user/bin/enapter-podman-pre-hook || true
 fi
+
+if [ -x /user/bin/enapter-podman-pre ]; then
+  /user/bin/enapter-podman-pre || true
+fi
