@@ -32,11 +32,11 @@ do_patch_script() {
 }
 
 do_maybe_reset() {
-    reset_fs_label="enp-data-disk-reset"
+    reset_fs_label="enp-data-reset"
     disk_to_reset="/dev/disk/by-label/$reset_fs_label"
 
     if [ -L "$disk_to_reset" ] ; then
-        do_reset "$disk_to_reset"
+        do_reset "$(readlink -f "$disk_to_reset")"
     fi
 }
 
@@ -49,7 +49,7 @@ do_reset() {
 
     i=1
     while [ "${i}" -le 5 ]; do
-        mkfs -t ext4 -q -F -m0 -L "$label" "$part" && return 0 || true
+        mkfs.ext4 -q -F -m0 -L "$label" "$part" && return 0 || true
         echo >&2 "$part mkfs failed, looks mounted (attemp $i)"
         sleep 2
         umount "$part" || true
@@ -115,13 +115,13 @@ do_update() {
 
     layer_images=$(find "$boot_mount/layers" -name "*.img")
 
-    for layer_image in "$layer_images"; do
+    for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then
             layer_name=$(basename "$layer_image" ".img")
             layer_image_update="$layer_image.update"
             layer_image_backup="$layer_image.backup"
 
-            if [ -f "$layer_update" ]; then
+            if [ -f "$layer_image_update" ]; then
                 info "Layer $layer_name update found, updating ..."
 
                 mount -v -o remount,rw "$boot_mount"
@@ -247,7 +247,7 @@ rootfs_run() {
     root_additional_lowerdirs=""
     layer_images=$(find "$boot_mount/layers" -name "*.img")
 
-    for layer_image in "$layer_images"; do
+    for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then
             layer_name=$(basename "$layer_image" ".img")
             info "[!] Mounting $layer_name layer image"
@@ -285,7 +285,7 @@ rootfs_run() {
     mount --bind "$root_ro_mount" "$ROOTFS_DIR/$root_ro_mount"
     mount --bind "$root_rw_mount" "$ROOTFS_DIR/$root_rw_mount"
 
-    for layer_image in "$layer_images"; do
+    for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then
             layer_name=$(basename "$layer_image" ".img")
 
