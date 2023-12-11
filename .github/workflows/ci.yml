@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  LANG: en_US.UTF-8
+  DL_DIR: /home/build/downloads
+  TMPDIR: /home/build/tmp
+  HOME: /home/build
+  USER: build
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: Install
+      run: |
+        sudo apt-get update
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y bc bison bsdmainutils \
+          build-essential curl locales \
+          flex g++-multilib gcc-multilib git gnupg gperf lib32ncurses-dev \
+          lib32z1-dev libncurses5-dev git-lfs \
+          libsdl1.2-dev libxml2-utils lzop \
+          openjdk-8-jdk lzop wget unzip \
+          genisoimage sudo socat xterm gawk cpio texinfo \
+          gettext vim diffstat chrpath \
+          python-mako libusb-1.0-0-dev exuberant-ctags \
+          pngcrush schedtool xsltproc zip zlib1g-dev libswitch-perl \
+          screen rsync jq python3-pip docker.io parted liblz4-tool zstd \
+          mtools
+        groupadd --gid 1000 build
+        useradd --uid 1000 --gid 1000 --create-home build
+        echo "build ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/build
+        chmod 0440 /etc/sudoers.d/build
+        mkdir -p /home/build/tmp && chown build:build /home/build/tmp/
+        git config --global user.email "buildagent@enapter.com"
+        git config --global user.name "Build Agent"
+        git config --global color.ui false
+        locale-gen en_US.UTF-8
+        export PATH="$PATH:/home/build/local/bin"
+        python3 -m pip install yq
