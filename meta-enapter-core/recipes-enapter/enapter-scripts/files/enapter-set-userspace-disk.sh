@@ -77,4 +77,4 @@ create_vfat_fs "$boot_label" || die "Boot fs creation failed"
 
 sync
 
-shutdown --reboot 1 "Finished disk setup"
+sleep 1 && reboot -f
