@@ -1,0 +1,17 @@
+[Unit]
+Description=Enapter Network Configurator Service
+DefaultDependencies=no
+
+Before=network-pre.target
+Wants=network-pre.target
+
+Wants=systemd-modules-load.service local-fs.target
+After=systemd-modules-load.service local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/enapter-network-configurator
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

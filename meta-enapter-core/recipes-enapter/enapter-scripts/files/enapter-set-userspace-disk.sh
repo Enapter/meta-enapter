@@ -8,6 +8,7 @@ set -e
 readonly user_label="enp-data-disk"
 readonly recovery_label="enp-recovery"
 readonly boot_label="enp-os"
+readonly images_label="enp-images"
 
 create_fs() {
     local label=$1
@@ -54,8 +55,14 @@ fi
 
 sfdisk --delete "$disk" || true
 
-printf "size=2048m name=%s type=L\n size=8192m name=%s type=U\n name=%s type=L" \
-  "$recovery_label" "$boot_label" "$user_label" | sfdisk --label gpt --force "$disk" -w always -W always
+recovery_part="size=2048m name=$recovery_label type=L"
+boot_part="size=8192m name=$boot_label type=U"
+images_part="size=16384m name=$images_label type=L"
+user_part="name=$user_label type=L"
+
+# shellcheck disable=SC2059
+printf "$recovery_part\n $boot_part\n $images_part\n $user_part" | \
+  sfdisk --label gpt --force "$disk" -w always -W always
 
 udevadm trigger --action=add
 udevadm settle || sleep 3
@@ -64,8 +71,10 @@ create_fs "$user_label" || die "User fs creation failed"
 sleep 1
 create_fs "$recovery_label" || die "Recovery fs creation failed"
 sleep 1
+create_fs "$images_label" || die "Images fs creation failed"
+sleep 1
 create_vfat_fs "$boot_label" || die "Boot fs creation failed"
 
 sync
 
-shutdown --reboot 1 "Finished disk setup"
+sleep 1 && reboot -f

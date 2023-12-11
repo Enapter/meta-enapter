@@ -10,7 +10,6 @@ alias dc="docker-compose -f /user/etc/docker-compose/docker-compose.yml"
 enapter-paths() {
     echo "/etc/enapter/         - enapter static configs"
     echo "/user/etc/enapter/    - enapter dynamic configs"
-    echo "/images/              - podman images"
     echo "/lib/systemd/system/  - systemd services path"
     echo "/usr/bin/             - enapter binaries"
 }
