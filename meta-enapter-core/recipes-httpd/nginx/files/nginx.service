@@ -6,6 +6,8 @@ ConditionPathExists=/etc/nginx/nginx.conf
 [Service]
 Type=forking
 PIDFile=/run/nginx/nginx.pid
+ExecStartPre=-/usr/bin/enapter-nginx-pre
+ExecStartPre=-/user/bin/enapter-nginx-pre
 ExecStartPre=@SBINDIR@/nginx -t
 ExecStart=@SBINDIR@/nginx
 ExecReload=@SBINDIR@/nginx -s reload
