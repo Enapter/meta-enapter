@@ -125,9 +125,9 @@ do_update() {
                 info "Layer $layer_name update found, updating ..."
 
                 mount -v -o remount,rw "$boot_mount"
-                mv -v -f "$boot_mount/layers/$layer_image" "$boot_mount/layers/$layer_image_backup"
+                mv -v -f "$layer_image" "$layer_image_backup"
                 sync; sync; sync
-                mv -v -f "$boot_mount/layers/$layer_image_update" "$boot_mount/layers/$layer_image"
+                mv -v -f "$layer_image_update" "$layer_image"
                 sync; sync; sync
                 updated=1
             fi
