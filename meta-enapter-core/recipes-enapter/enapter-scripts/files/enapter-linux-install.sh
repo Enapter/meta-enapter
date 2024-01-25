@@ -20,6 +20,7 @@ fatal() {
 }
 
 install() {
+    yes="$1"
     disk_boot_label="enp-os"
     hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
 
@@ -35,18 +36,20 @@ install() {
       fatal "Partition with label enp-os (installation disk) not found, please do Enapter Gateway setup first."
     fi
 
-    while true; do
-      read -p "Are you sure you want to proceed with installation Enapter Linux on HDD? (y/n) " yn
+    if [[ $yes -ne 1 ]]; then
+        while true; do
+          read -p "Are you sure you want to proceed with installation Enapter Linux on HDD? (y/n) " yn
 
-      case $yn in 
-        [yY] ) info "Ok, we will proceed";
-          break;;
-        [nN] ) info "Exiting...";
-          exit;;
-        * ) info "Invalid response, please use (y/n).";
-          exit 1;;
-      esac
-    done
+          case $yn in 
+            [yY] ) info "Ok, we will proceed";
+              break;;
+            [nN] ) info "Exiting...";
+              exit;;
+            * ) info "Invalid response, please use (y/n).";
+              exit 1;;
+          esac
+        done
+    fi
 
     info "Mounting HDD boot partition"
     mkdir -p ${hdd_boot_mount}
@@ -86,4 +89,20 @@ install() {
     info "Enapter Linux successfully installed on HDD disk, please remove installation media (USB stick) and reboot PC."
 }
 
-install
+OPTIND=1
+yes=0
+
+while getopts "y" opt; do
+  case "$opt" in
+    y)
+      yes=1
+      ;;
+    ?)
+      echo "Invalid option: -${OPTARG}."
+      exit 1
+      ;;
+  esac
+done
+shift "$((OPTIND-1))"   # Discard the options and sentinel --
+
+install "$yes"
