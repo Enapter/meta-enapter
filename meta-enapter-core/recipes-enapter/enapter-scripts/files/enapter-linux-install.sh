@@ -27,8 +27,8 @@ install() {
     boot_mount="/boot"
     hdd_boot_mount="/mnt/boot"
 
-    lsblk -P -o "MOUNTPOINT,LABEL" | grep "MOUNTPOINT=\"$boot_mount\" LABEL=\"enp-os-usb\"" > /dev/null || {
-      lsblk -P -p -o "NAME,SIZE,MOUNTPOINT,LABEL"
+    findmnt "$boot_mount" -o LABEL -P | grep "LABEL=\"enp-os-usb\"" > /dev/null || {
+      lsblk -P -p -o "NAME,SIZE,MOUNTPOINTS,LABEL"
       fatal "Enapter Linux seems to be already installed, please review partitions and mounts."
     }
 
