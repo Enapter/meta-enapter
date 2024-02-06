@@ -55,7 +55,7 @@ install() {
     mkdir -p ${hdd_boot_mount}
     mountpoint -q ${hdd_boot_mount} || mount -v ${hdd_boot_device} ${hdd_boot_mount}
 
-    os_files=$(find "$boot_mount" -type f | sed 's|^/boot/||')
+    os_files=$(find "$boot_mount" -not -path '*/.*' -type f | sed 's|^/boot/||')
 
     while IFS= read -r f; do
       if [[ -n "$f" ]]; then
