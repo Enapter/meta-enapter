@@ -21,7 +21,7 @@ debug() {
 
 enp_os_usb_label="enp-os-usb"
 usb_disk="/dev/disk/by-label/$enp_os_usb_label"
-usb_disk_mount="/mnt/enp_os_usb"
+usb_disk_mount="/mnt/enp_os_usb-network"
 network_config="/boot/network.yaml"
 
 if [ -L "$usb_disk" ] ; then
@@ -32,7 +32,7 @@ if [ -L "$usb_disk" ] ; then
   mount "$usb_disk" -o ro "$usb_disk_mount"
   result=$?
 
-  if [[ $result -ne 0 ]]; then
+  if [[ $result -eq 0 ]]; then
     usb_network_config="$usb_disk_mount/network.yaml"
 
     if [[ -f "$usb_network_config" ]]; then
