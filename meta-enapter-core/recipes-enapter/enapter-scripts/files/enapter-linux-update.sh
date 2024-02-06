@@ -12,6 +12,7 @@ initrd
 rootfs.img
 grubx64.efi
 grub.cfg
+version.txt
 SHA256SUMS"
 
 info() {
@@ -104,6 +105,13 @@ update() {
     cp -vf "$boot_mount$efi_enapter/initrd" "$boot_mount$efi_enapter/initrd.backup"
     sync; sync; sync
 
+    info "Updating bootloader."
+
+    cp -vf "$tmp_dir/grubx64.efi" "$boot_mount$efi_boot/grubx64.efi"
+    sync; sync; sync
+    cp -vf "$tmp_dir/grub.cfg" "$boot_mount$efi_boot/grub.cfg"
+    sync; sync; sync
+
     info "Copying system files, please wait..."
 
     cp -vf "$tmp_dir/bzImage" "$boot_mount$efi_enapter/bzImage"
@@ -112,18 +120,13 @@ update() {
     sync; sync; sync
     cp -vf "$tmp_dir/rootfs.img" "$boot_mount$efi_enapter/rootfs.img.update"
     sync; sync; sync
+    cp -vf "$tmp_dir/version.txt" "$boot_mount$efi_enapter/version.txt.update"
+    sync; sync; sync
 
     if [[ -f "$tmp_dir/enapter-iot.img" ]]; then
       cp -vf "$tmp_dir/enapter-iot.img" "$boot_mount$layers/enapter-iot.img.update"
       sync; sync; sync
     fi
-
-    info "Updating bootloader."
-
-    cp -vf "$tmp_dir/grubx64.efi" "$boot_mount$efi_boot/grubx64.efi"
-    sync; sync; sync
-    cp -vf "$tmp_dir/grub.cfg" "$boot_mount$efi_boot/grub.cfg"
-    sync; sync; sync
 
     info "Re-mounting boot partition as R/O"
     mount -v -o remount,ro ${boot_mount} || info "Failed to remount boot partition as R/O, but should be OK."
