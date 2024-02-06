@@ -64,77 +64,45 @@ do_reset() {
 do_update() {
     boot_mount="$1"
 
-    kernel_path="EFI/enapter/bzImage"
-    kernel_backup_path="$kernel_path.backup"
-    kernel_update_path="$kernel_path.update"
+    updates_require_reboot="EFI/enapter/bzImage.update EFI/enapter/initrd.update"
 
-    root_fs_image_path="EFI/enapter/rootfs.img"
-    root_fs_image_backup_path="$root_fs_image_path.backup"
-    root_fs_image_update_path="$root_fs_image_path.update"
+    requires_reboot=0
+    disk_in_rw_mode=0
 
-    initram_fs_image_path="EFI/enapter/initrd"
-    initram_fs_image_backup_path="$initram_fs_image_path.backup"
-    initram_fs_image_update_path="$initram_fs_image_path.update"
+    info "Checking for available updates"
 
-    perform_reboot=0
-    updated=0
+    update_files=$(find "$boot_mount" -name "*.update")
 
-    debug "Checking for available updates"
-
-    if [ -e "$boot_mount/$kernel_update_path" ]; then
-        info "Kernel update file found, updating kernel ..."
-        mount -v -o remount,rw "$boot_mount"
-        mv -v -f "$boot_mount/$kernel_path" "$boot_mount/$kernel_backup_path"
-        sync; sync; sync
-        mv -v -f "$boot_mount/$kernel_update_path" "$boot_mount/$kernel_path"
-        sync; sync; sync
-        perform_reboot=1
-        updated=1
-    fi
-
-    if [ -e "$boot_mount/$root_fs_image_update_path" ]; then
-        info "Rootfs update file found, updating rootfs ..."
-        mount -v -o remount,rw "$boot_mount"
-        mv -v -f "$boot_mount/$root_fs_image_path" "$boot_mount/$root_fs_image_backup_path"
-        sync; sync; sync
-        mv -v -f "$boot_mount/$root_fs_image_update_path" "$boot_mount/$root_fs_image_path"
-        sync; sync; sync
-        updated=1
-    fi
-
-    if [ -e "$boot_mount/$initram_fs_image_update_path" ]; then
-        info "Initramfs update file found, updating initramfs ..."
-        mount -v -o remount,rw "$boot_mount"
-        mv -v -f "$boot_mount/$initram_fs_image_path" "$boot_mount/$initram_fs_image_backup_path"
-        sync; sync; sync
-        mv -v -f "$boot_mount/$initram_fs_image_update_path" "$boot_mount/$initram_fs_image_path"
-        sync; sync; sync
-        perform_reboot=1
-        updated=1
-    fi
-
-    layer_images=$(find "$boot_mount/layers" -name "*.img")
-
-    for layer_image in $layer_images; do
-        if [ -n "$layer_image" ]; then
-            layer_name=$(basename "$layer_image" ".img")
-            layer_image_update="$layer_image.update"
-            layer_image_backup="$layer_image.backup"
-
-            if [ -f "$layer_image_update" ]; then
-                info "Layer $layer_name update found, updating ..."
-
-                mount -v -o remount,rw "$boot_mount"
-                mv -v -f "$layer_image" "$layer_image_backup"
-                sync; sync; sync
-                mv -v -f "$layer_image_update" "$layer_image"
-                sync; sync; sync
-                updated=1
+    for update_file in $update_files; do
+        for update_requires_reboot_file in $updates_require_reboot; do
+            if [ "$update_file" = "$boot_mount/$update_requires_reboot_file" ]; then
+                info "One of update file requires reboot."
+                requires_reboot=1
             fi
+        done
+
+        info "$update_file found, updating ..."
+
+        base_file="${update_file/.update/}"
+        backup_file="$base_file.backup"
+
+        if [ $disk_in_rw_mode -eq 0 ]; then
+            mount -v -o remount,rw "$boot_mount"
+            disk_in_rw_mode=1
         fi
+
+        if [ -e "$base_file" ]; then
+            mv -v -f "$base_file" "$backup_file"
+            sync; sync; sync
+        else
+            info "$base_file is not exists, skipping backup step"
+        fi
+
+        mv -v -f "$update_file" "$base_file"
+        sync; sync; sync
     done
 
-    if [ "$updated" -ne 0 ]; then
+    if [ "$disk_in_rw_mode" -ne 0 ]; then
         info "Some files was updated"
 
         info "Syncing disks"
@@ -145,8 +113,8 @@ do_update() {
             reboot -f
         }
 
-        if [ "$perform_reboot" -ne 0 ]; then
-            info "Kernel or initramfs was updated, rebooting"
+        if [ "$requires_reboot" -ne 0 ]; then
+            info "Some of updated files require reboot, rebooting"
             reboot -f
         else
             info "No reboot was requested, continuing"
@@ -223,7 +191,7 @@ rootfs_run() {
     debug "Boot device mounted"
 
     if [ -z "$bootparam_usebackup" ]; then
-        do_update "$boot_mount"
+        do_update "$boot_mount" || info "[!] Update failed"
     fi
 
     do_maybe_reset || info "[!] Factory reset failed"
