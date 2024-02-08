@@ -23,6 +23,7 @@ enp_os_usb_label="enp-os-usb"
 usb_disk="/dev/disk/by-label/$enp_os_usb_label"
 usb_disk_mount="/mnt/enp_os_usb-network"
 network_config="/boot/network.yaml"
+do_unmount=0
 
 if [ -L "$usb_disk" ] ; then
   info "USB disk with Enapter Linux detected"
@@ -38,6 +39,7 @@ if [ -L "$usb_disk" ] ; then
     if [[ -f "$usb_network_config" ]]; then
       debug "Network config override found on USB disk"
       network_config="$usb_network_config"
+      do_unmount=1
     else
       debug "Network config is not found on USB disk"
     fi
@@ -83,3 +85,8 @@ mkdir -p "$netplan_config_dir"
 cp "$network_config" "$netplan_config_dir/network.yaml"
 chmod 600 "$netplan_config_dir/network.yaml"
 $netplan_bin generate
+
+if [[ $do_unmount -eq 1 ]]; then
+  umount "$usb_disk_mount"
+fi
+
