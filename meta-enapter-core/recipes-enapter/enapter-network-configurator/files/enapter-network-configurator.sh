@@ -19,6 +19,12 @@ debug() {
   echo "[DEBUG] $1"
 }
 
+unmount() {
+  if [[ $do_unmount -eq 1 ]]; then
+    umount "$usb_disk_mount"
+  fi
+}
+
 enp_os_usb_label="enp-os-usb"
 usb_disk="/dev/disk/by-label/$enp_os_usb_label"
 usb_disk_mount="/mnt/enp_os_usb-network"
@@ -35,11 +41,11 @@ if [ -L "$usb_disk" ] ; then
 
   if [[ $result -eq 0 ]]; then
     usb_network_config="$usb_disk_mount/network.yaml"
+    do_unmount=1
 
     if [[ -f "$usb_network_config" ]]; then
       debug "Network config override found on USB disk"
       network_config="$usb_network_config"
-      do_unmount=1
     else
       debug "Network config is not found on USB disk"
     fi
@@ -55,11 +61,13 @@ quectel_at_port="/dev/serial/by-id/usb-Quectel_Incorporated_LTE_Module-if02-port
 
 if [[ ! -f "$network_config" ]]; then
     debug "Network config not found, exiting"
+    unmount
     exit 0
 fi
 
 if [[ ! -x "$netplan_bin" ]]; then
     debug "netplan binary not found, exiting"
+    unmount
     exit 0
 fi
 
@@ -86,7 +94,4 @@ cp "$network_config" "$netplan_config_dir/network.yaml"
 chmod 600 "$netplan_config_dir/network.yaml"
 $netplan_bin generate
 
-if [[ $do_unmount -eq 1 ]]; then
-  umount "$usb_disk_mount"
-fi
-
+unmount
