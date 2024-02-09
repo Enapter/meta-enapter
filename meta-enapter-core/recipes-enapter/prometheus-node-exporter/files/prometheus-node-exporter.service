@@ -44,7 +44,7 @@ ExecStart=/usr/bin/podman run \
           --collector.netdev.device-exclude="^(veth|cni-podman|podman)" \
           --collector.netclass \
           --collector.netclass.ignored-devices="^(veth|cni-podman|podman)" \
-          --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|user/var/lib/containers/storage/overlay-containers/.+)($|/)" \
+          --collector.filesystem.mount-points-exclude="^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+|var/lib/containers/storage/.+|user/var/lib/containers/storage/overlay-containers/.+|run/containers/storage/.+)($|/)" \
           --collector.os \
           --collector.stat \
           --collector.network_route \

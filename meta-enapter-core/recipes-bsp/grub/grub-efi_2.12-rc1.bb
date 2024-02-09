@@ -106,10 +106,10 @@ do_install() {
     install -m 0644 ${WORKDIR}/grubenv ${D}/boot/EFI/BOOT/grubenv
 }
 
-SIGNING_DIR ?= "${B}"
+SIGNING_DIR ?= "${WORKDIR}/git"
 SIGNING_BINARIES ?= "*.efi"
 SIGN_AFTER ?= "do_compile"
-SIGN_BEFORE ?= "do_deploy"
+SIGN_BEFORE ?= "do_install"
 
 # uefi-sign.bbclass defined in meta-intel layer
 inherit uefi-sign

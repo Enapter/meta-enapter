@@ -20,14 +20,15 @@ fatal() {
 }
 
 install() {
+    yes="$1"
     disk_boot_label="enp-os"
     hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
 
     boot_mount="/boot"
     hdd_boot_mount="/mnt/boot"
 
-    lsblk -P -o "MOUNTPOINT,LABEL" | grep "MOUNTPOINT=\"$boot_mount\" LABEL=\"enp-os-usb\"" > /dev/null || {
-      lsblk -P -p -o "NAME,SIZE,MOUNTPOINT,LABEL"
+    findmnt "$boot_mount" -o LABEL -P | grep "LABEL=\"enp-os-usb\"" > /dev/null || {
+      lsblk -P -p -o "NAME,SIZE,MOUNTPOINTS,LABEL"
       fatal "Enapter Linux seems to be already installed, please review partitions and mounts."
     }
 
@@ -35,24 +36,26 @@ install() {
       fatal "Partition with label enp-os (installation disk) not found, please do Enapter Gateway setup first."
     fi
 
-    while true; do
-      read -p "Are you sure you want to proceed with installation Enapter Linux on HDD? (y/n) " yn
+    if [[ $yes -ne 1 ]]; then
+        while true; do
+          read -p "Are you sure you want to proceed with installation Enapter Linux on HDD? (y/n) " yn
 
-      case $yn in 
-        [yY] ) info "Ok, we will proceed";
-          break;;
-        [nN] ) info "Exiting...";
-          exit;;
-        * ) info "Invalid response, please use (y/n).";
-          exit 1;;
-      esac
-    done
+          case $yn in 
+            [yY] ) info "Ok, we will proceed";
+              break;;
+            [nN] ) info "Exiting...";
+              exit;;
+            * ) info "Invalid response, please use (y/n).";
+              exit 1;;
+          esac
+        done
+    fi
 
     info "Mounting HDD boot partition"
     mkdir -p ${hdd_boot_mount}
     mountpoint -q ${hdd_boot_mount} || mount -v ${hdd_boot_device} ${hdd_boot_mount}
 
-    os_files=$(find "$boot_mount" -type f | sed 's|^/boot/||')
+    os_files=$(find "$boot_mount" -not -path '*/.*' -type f | sed 's|^/boot/||')
 
     while IFS= read -r f; do
       if [[ -n "$f" ]]; then
@@ -86,4 +89,20 @@ install() {
     info "Enapter Linux successfully installed on HDD disk, please remove installation media (USB stick) and reboot PC."
 }
 
-install
+OPTIND=1
+yes=0
+
+while getopts "y" opt; do
+  case "$opt" in
+    y)
+      yes=1
+      ;;
+    ?)
+      echo "Invalid option: -${OPTARG}."
+      exit 1
+      ;;
+  esac
+done
+shift "$((OPTIND-1))"   # Discard the options and sentinel --
+
+install "$yes"
