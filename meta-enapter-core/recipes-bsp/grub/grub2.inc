@@ -8,7 +8,7 @@ standard, which allows for flexible loading of multiple boot images."
 HOMEPAGE = "http://www.gnu.org/software/grub/"
 SECTION = "bootloaders"
 
-SRC_URI = "git://github.com/rhboot/grub2.git;branch=master;protocol=https \
+SRC_URI = "git://git.savannah.gnu.org/git/grub.git;branch=master;protocol=https \
 "
 
 S = "${WORKDIR}/git"
@@ -18,7 +18,7 @@ LIC_FILES_CHKSUM = "file://${S}/COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
 CVE_PRODUCT = "grub2"
 
-SRCREV = "7a994c87f571ac99745645be0bdde9827297321a"
+SRCREV = "5ca9db22e8ed0dbebb2aec53722972de0680a463"
 
 DEPENDS = "flex-native bison-native gettext-native"
 
