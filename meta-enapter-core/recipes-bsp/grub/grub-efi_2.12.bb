@@ -30,7 +30,6 @@ RDEPENDS:${PN} = "bash grub-common virtual-grub-bootconf"
 SRC_URI += "file://cfg \
             file://sbat.csv \
             file://unicode.pf2 \
-            file://0002-Commands-to-increment-and-decrement-variables.patch \
            "
 
 # Determine the target arch for the grub modules
