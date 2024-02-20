@@ -39,9 +39,9 @@ SIGN_BEFORE ?= "do_deploy"
 # uefi-sign.bbclass defined in meta-intel layer
 inherit uefi-sign
 
-SRCREV_machine = "fb2635ac69abac0060cc2be2873dc4f524f12e66"
-SRCREV_meta = "d26f4f3307216e06ee0b74fa9b57b17fba72a988"
-LINUX_VERSION = "6.1.62"
+SRCREV_machine = "481c1dcf3c1882cbb0a82e982abb5fb0200c2196"
+SRCREV_meta = "624f92f6b7ebf84f2cea69b361657d265c5e847d"
+LINUX_VERSION = "6.1.77"
 LINUX_VERSION_EXTENSION = "-enapter"
 
 MODSIGN_PRIVKEY = "${SECURE_BOOT_SIGNING_KEY}"
