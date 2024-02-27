@@ -32,8 +32,7 @@ do_patch_script() {
 }
 
 do_maybe_reset() {
-    reset_fs_label="enp-data-reset"
-    disk_to_reset="/dev/disk/by-label/$reset_fs_label"
+    disk_to_reset="$1"
 
     if [ -L "$disk_to_reset" ] ; then
         do_reset "$(readlink -f "$disk_to_reset")"
@@ -59,6 +58,18 @@ do_reset() {
 
     echo >&2 "$part mkfs failed, retries exausted"
     return 1
+}
+
+do_password_reset() {
+    data_disk_device="$1"
+    data_disk_mount="/mnt/data_disk"
+
+    if [ -e "$data_disk_device" ] ; then
+        mkdir -p "$data_disk_mount"
+        mount "$data_disk_device" "$data_disk_mount" || return 1
+
+        rm "$data_disk_mount/etc/enapter/enapter-superuser-password.env" || return 1
+    fi
 }
 
 do_update() {
@@ -125,9 +136,13 @@ do_update() {
 rootfs_run() {
     usb_boot_label="enp-os-usb"
     disk_boot_label="enp-os"
+    data_disk_label="enp-data-disk"
+    reset_fs_label="enp-data-reset"
 
     usb_boot_device="/dev/disk/by-label/$usb_boot_label"
     hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
+    data_disk_device="/dev/disk/by-label/$data_disk_label"
+    reset_device="/dev/disk/by-label/$reset_fs_label"
 
     boot_mount="/boot"
     root_ro_mount="/overlay_ro"
@@ -185,7 +200,7 @@ rootfs_run() {
     fi
 
     wait_for_device "$boot_device"
-    fsck.vfat -n "$boot_device"
+    fsck.vfat -n "$boot_device" || info "[!] Got fsck errors"
     mount "$boot_device" -o ro "$boot_mount" || fatal "Failed to mount boot device"
 
     debug "Boot device mounted"
@@ -194,7 +209,15 @@ rootfs_run() {
         do_update "$boot_mount" || info "[!] Update failed"
     fi
 
-    do_maybe_reset || info "[!] Factory reset failed"
+    if [ -n "$bootparam_factory_reset" ]; then
+        do_maybe_reset "$data_disk_device" || info "[!] Factroy reset failed"
+    fi
+
+    if [ -n "$bootparam_password_reset" ]; then
+        do_password_reset "$data_disk_device" || info "[!] Password reset failed"
+    fi
+
+    do_maybe_reset "$reset_device" || info "[!] Factory reset failed"
 
     root_fs_image_path="$boot_mount/EFI/enapter/rootfs.img"
     if [ -n "$bootparam_usebackup" ]; then
@@ -218,6 +241,14 @@ rootfs_run() {
     for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then
             layer_name=$(basename "$layer_image" ".img")
+
+            if [ -n "$bootparam_usebackup" ]; then
+                if [ -e "$layer_image.backup" ]; then
+                    info "[!] Using $layer_image.backup"
+                    layer_image="$layer_image.backup"
+                fi
+            fi
+
             info "[!] Mounting $layer_name layer image"
 
             mkdir -p "$layers_ro_mount_base_dir/$layer_name"
