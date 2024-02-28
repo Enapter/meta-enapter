@@ -25,7 +25,7 @@ readonly images_fs_label="enp-images"
 readonly images_fs_mountpoint="/user/images"
 readonly images_disk_path="/dev/disk/by-label/$images_fs_label"
 
-readonly disk_opts="defaults,rw,nodev,nosuid"
+readonly disk_opts="data=ordered,barrier=1,rw,nosuid,nodev,relatime"
 readonly ro_disk_opts="defaults,ro,nodev,nosuid"
 
 readonly docker_compose_dir="etc/docker-compose"
