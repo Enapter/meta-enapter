@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://${WORKDIR}/LICENSE;md5=86d3f3a95c324c9479bd8986968f43
 SRC_URI = "file://LICENSE \
            file://enapter_vimrc \
            file://enapter_bash_profile \
+           file://enapter_bashrc \
            file://enapter-aliases.sh \
           "
 
@@ -33,6 +34,7 @@ do_install() {
     install -d ${D}/home/enapter/.vim/swap
 
     install -m 0644 ${WORKDIR}/enapter_vimrc ${D}/home/enapter/.vimrc
+    install -m 0644 ${WORKDIR}/enapter_bashrc ${D}/home/enapter/.bashrc
     install -m 0644 ${WORKDIR}/enapter_bash_profile ${D}/home/enapter/.bash_profile
 
     chown enapter -R ${D}/home/enapter
@@ -44,6 +46,7 @@ do_install() {
     install -d ${D}/root/.vim/swap
 
     install -m 0644 ${WORKDIR}/enapter_vimrc ${D}/root/.vimrc
+    install -m 0644 ${WORKDIR}/enapter_bashrc ${D}/root/.bashrc
     install -m 0644 ${WORKDIR}/enapter_bash_profile ${D}/root/.bash_profile
 
     install -d ${D}${bindir}
@@ -51,12 +54,14 @@ do_install() {
 }
 
 FILES:${PN} += " \
+    /home/enapter/.bashrc \
     /home/enapter/.bash_profile \
     /home/enapter/.vimrc \
     /home/enapter/.vim \
     /home/enapter/.vim/backup \
     /home/enapter/.vim/undo \
     /home/enapter/.vim/swap \
+    /root/.bashrc \
     /root/.bash_profile \
     /root/.vimrc \
     /root/.vim \
