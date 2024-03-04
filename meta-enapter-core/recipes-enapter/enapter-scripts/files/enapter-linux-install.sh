@@ -29,29 +29,29 @@ install() {
 
     findmnt "$boot_mount" -o LABEL -P | grep "LABEL=\"enp-os-usb\"" > /dev/null || {
       lsblk -P -p -o "NAME,SIZE,MOUNTPOINTS,LABEL"
-      fatal "Enapter Linux seems to be already installed, please review partitions and mounts."
+      fatal "Enapter Linux appears to be already installed. Please review the partitions and mounts."
     }
 
     if [[ ! -L "$hdd_boot_device" ]]; then
-      fatal "Partition with label enp-os (installation disk) not found, please do Enapter Gateway setup first."
+      fatal "The partition with the label enp-os (installation disk) was not found. Please proceed with the Enapter Gateway setup first."
     fi
 
     if [[ $yes -ne 1 ]]; then
         while true; do
-          read -p "Are you sure you want to proceed with installation Enapter Linux on HDD? (y/n) " yn
+          read -p "Are you sure you want to proceed with installing Enapter Linux on the HDD? (y/n) " yn
 
           case $yn in 
-            [yY] ) info "Ok, we will proceed";
+            [yY] ) info "Ok, we will proceed.";
               break;;
             [nN] ) info "Exiting...";
               exit;;
-            * ) info "Invalid response, please use (y/n).";
+            * ) info "Invalid response. Please use (y/n).";
               exit 1;;
           esac
         done
     fi
 
-    info "Mounting HDD boot partition"
+    info "Mounting the HDD boot partition."
     mkdir -p ${hdd_boot_mount}
     mountpoint -q ${hdd_boot_mount} || mount -v ${hdd_boot_device} ${hdd_boot_mount}
 
@@ -60,13 +60,13 @@ install() {
     while IFS= read -r f; do
       if [[ -n "$f" ]]; then
         if [[ -f "$hdd_boot_mount/$f" ]]; then
-          fatal "Enapter Linux seems to be already installed on HDD disk (/mnt/boot), but system booted from USB. If you want to overwrite installed files, please remove them manually."
+          fatal "Enapter Linux appears to be already installed on the HDD (/mnt/boot), but the system has booted from a USB. If you wish to overwrite the installed files, please remove them manually."
         fi
       fi
     done <<< "$os_files"
 
     if [[ ! -w ${hdd_boot_mount} ]]; then
-      fatal "HDD boot partition is not available for writing. Please check logs above for more details."
+      fatal "The HDD boot partition is not available for writing. Please check the logs above for more details."
     fi
 
     info "Copying system files, please wait..."
@@ -75,18 +75,18 @@ install() {
       if [[ -n "$f" ]]; then
         if [[ -f "$boot_mount/$f" ]]; then
           mkdir -v -p "$hdd_boot_mount/$(dirname "$f")"
-          cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy $f file, aborting installation halfway. Please do cleanup before reboot."
+          cp -v -f "$boot_mount/$f" "$hdd_boot_mount/$f" || fatal "Failed to copy the $f file, aborting the installation halfway. Please perform a cleanup before rebooting."
         fi
       fi
     done <<< "$os_files"
 
-    info "Syncing disks"
+    info "Syncing disks."
     sync; sync; sync
 
-    info "Unmounting HDD boot partition"
-    umount ${hdd_boot_mount} || info "Failed to unmount HDD boot partition, but should be OK."
+    info "Unmounting the HDD boot partition."
+    umount ${hdd_boot_mount} || info "Failed to unmount the HDD boot partition, but it should be OK."
 
-    info "Enapter Linux successfully installed on HDD disk, please remove installation media (USB stick) and reboot PC."
+    info "Enapter Linux has been successfully installed on the HDD. Please remove the installation media (USB stick) and reboot the PC."
 }
 
 OPTIND=1
