@@ -1,0 +1,18 @@
+[Unit]
+Description=DNS forwarder and DHCP server
+After=network.target
+
+[Service]
+Type=forking
+KillMode=mixed
+Restart=on-failure
+TimeoutStopSec=30
+RestartSec=10
+PIDFile=/run/dnsmasq.pid
+ExecStartPre=/usr/bin/dnsmasq --test
+ExecStart=/usr/bin/dnsmasq -x /run/dnsmasq.pid -7 /etc/dnsmasq.d --local-service
+ExecStop=/bin/kill $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

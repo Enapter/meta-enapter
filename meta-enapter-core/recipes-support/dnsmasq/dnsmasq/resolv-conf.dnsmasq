@@ -1,0 +1,4 @@
+search local
+# this is fallback DNS server for case when NetworkManager
+# failed to call resolveconf with real upstream DNS
+nameserver 1.1.1.1
