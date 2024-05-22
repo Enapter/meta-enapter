@@ -7,7 +7,7 @@ SRC_URI += "file://0001-Add-confirmation-dialog-on-connection-deactivation.patch
            "
 
 PACKAGECONFIG[resolvconf] = "-Dresolvconf=${sbindir}/resolvconf,-Dresolvconf=no,,openresolv"
-PACKAGECONFIG:append = " modemmanager ppp resolvconf"
+PACKAGECONFIG:append = " modemmanager ppp resolvconf nmtui"
 
 do_install:append(){
     install -d ${D}${sysconfdir}/NetworkManager/conf.d/

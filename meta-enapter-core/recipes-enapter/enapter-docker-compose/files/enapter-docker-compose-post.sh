@@ -44,7 +44,7 @@ while IFS=, read -r id service image image_name; do
       /usr/sbin/skopeo copy "containers-storage:[overlay@$podman_rw_storage]$image" "containers-storage:[overlay@$podman_user_ro_storage]$image_name"
     fi
 
-    if [ -x $monit_bin ]; then
+    if [ -x $monit_bin -a -x /usr/bin/enapter-monit-docker-compose-entry-check ]; then
       printf "check program docker-compose-%s with path /usr/bin/enapter-monit-docker-compose-entry-check %s '%s'\n  if status != 0 then alert\n\n" "$service" "$id" "$service" >> "$docker_compose_monit_file"
     fi
   fi
