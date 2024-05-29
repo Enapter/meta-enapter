@@ -1,8 +1,11 @@
 [Unit]
 Description=Enapter Docker Compose Service
+
+ConditionPathExists=/user/etc/docker-compose/docker-compose.yml
+
 After=enapter-podman-prepare.service
 Requires=enapter-podman-prepare.service
-ConditionPathExists=/user/etc/docker-compose/docker-compose.yml
+
 StartLimitIntervalSec=0
 
 [Service]

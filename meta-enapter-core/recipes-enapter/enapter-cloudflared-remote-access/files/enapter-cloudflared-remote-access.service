@@ -1,8 +1,12 @@
 [Unit]
 Description=Enapter Cloudflared Remote Access Service
+
 ConditionPathExists=/user/etc/enapter/rwfs
 ConditionPathExists=/user/etc/enapter/enapter-cloudflared-remote-access.env
-After=network-online.target local-fs.target
+
+After=network-online.target
+After=local-fs.target
+
 StartLimitIntervalSec=0
 
 [Service]

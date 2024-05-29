@@ -4,8 +4,12 @@ ConditionPathExists=/user/etc/enapter/rwfs
 DefaultDependencies=no
 
 Before=systemd-journal-flush.service
-Wants=systemd-modules-load.service enapter-init-mount-fs.service local-fs.target
-After=systemd-modules-load.service enapter-init-mount-fs.service local-fs.target
+After=systemd-modules-load.service
+Wants=systemd-modules-load.service
+After=enapter-init-mount-fs.service
+Wants=enapter-init-mount-fs.service
+After=local-fs.target
+Wants=local-fs.target
 
 [Service]
 Type=oneshot

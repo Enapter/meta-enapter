@@ -1,9 +1,14 @@
 [Unit]
 Description=Enapter Set Hostname Init Service
+
 DefaultDependencies=no
-Requires=local-fs.target systemd-hostnamed.service
-After=local-fs.target systemd-hostnamed.service
-Before=getty-pre.target avahi-daemon.service
+
+After=local-fs.target
+Requires=local-fs.target
+After=systemd-hostnamed.service
+Requires=systemd-hostnamed.service
+Before=getty-pre.target
+Before=avahi-daemon.service
 
 [Service]
 Type=oneshot

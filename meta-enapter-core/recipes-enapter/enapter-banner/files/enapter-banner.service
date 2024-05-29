@@ -1,7 +1,10 @@
 [Unit]
 Description=Enapter Set Banner Service
+
 DefaultDependencies=no
-After=enapter-init-sethostname.service local-fs.target
+
+After=enapter-init-sethostname.service
+After=local-fs.target
 
 [Service]
 Type=oneshot

@@ -1,7 +1,10 @@
 [Unit]
 Description=Enapter Swap Init Service
+
 ConditionPathExists=/user/etc/enapter/rwfs
+
 DefaultDependencies=no
+
 Before=local-fs.target
 Wants=local-fs-pre.target
 After=enapter-init-mount-fs.service

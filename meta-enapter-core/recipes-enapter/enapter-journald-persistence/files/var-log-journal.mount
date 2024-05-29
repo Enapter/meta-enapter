@@ -3,8 +3,8 @@ Description=Enapter Persistent Journal Storage Bind
 ConditionPathExists=/user/etc/enapter/rwfs
 DefaultDependencies=no
 
-Wants=enapter-journald-persistence.service
 After=enapter-journald-persistence.service
+Wants=enapter-journald-persistence.service
 Before=umount.target
 Conflicts=umount.target
 
