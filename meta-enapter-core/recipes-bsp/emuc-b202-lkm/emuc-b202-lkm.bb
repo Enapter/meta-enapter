@@ -5,9 +5,9 @@ LICENSE = "GPL-2.0-only"
 
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
-DEPENDS = "virtual/kernel openssl-native"
+DEPENDS = "virtual/kernel openssl-native elfutils-native"
 
-SRCREV = "c45fa7012fd30d5719646115048a39823bb7d3f8"
+SRCREV = "8a02ed0296ebfcd2793deac70bcc24dd6f8a1da2"
 
 SRC_URI = "git://github.com/Enapter/emuc-b202-lkm.git;protocol=https;branch=master \
            file://Makefile"
