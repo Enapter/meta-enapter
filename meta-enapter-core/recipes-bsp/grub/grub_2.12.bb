@@ -18,9 +18,6 @@ FILES:${PN}-common = " \
 "
 ALLOW_EMPTY:${PN} = "1"
 
-SRC_URI += "file://0001-fix-bin-sh.patch \
-           "
-
 do_install:append () {
     # Avoid conflicts with the EFI package for systems such as arm64 where we
     # need to build grub and grub-efi but only EFI is supported by removing EFI
