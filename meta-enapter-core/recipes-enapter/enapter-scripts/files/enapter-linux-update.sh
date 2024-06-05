@@ -128,6 +128,11 @@ update() {
       sync; sync; sync
     fi
 
+    if [[ -f "$tmp_dir/enapter-iot-enterprise.img" ]]; then
+      cp -vf "$tmp_dir/enapter-iot-enterprise.img" "$boot_mount$layers/enapter-iot-enterprise.img.update"
+      sync; sync; sync
+    fi
+
     info "Re-mounting boot partition as R/O"
     mount -v -o remount,ro ${boot_mount} || info "Failed to remount boot partition as R/O, but should be OK."
 
