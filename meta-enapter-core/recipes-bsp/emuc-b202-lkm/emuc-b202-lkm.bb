@@ -26,9 +26,6 @@ do_compile:prepend () {
 }
 
 module_do_install() {
-    # unplesant hack due to sign-file binary dynamically linked to libcrypto.so.3 inside
-    # make-mod-script sysroot and not working after cleaning make-mod-scripts work dir
-    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${RECIPE_SYSROOT_NATIVE}/usr/lib \
     ${STAGING_KERNEL_BUILDDIR}/scripts/sign-file ${MODULE_SIG_HASH} ${SECURE_BOOT_SIGNING_KEY} ${SECURE_BOOT_SIGNING_CERT} ${MODULE_NAME}.ko
 
     install -d ${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}/kernel/${MODULE_NAME}
