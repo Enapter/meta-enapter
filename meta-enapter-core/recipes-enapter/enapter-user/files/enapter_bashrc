@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
-export LANG="en_US.UTF-8"
 export DOCKER_HOST=http://127.0.0.1:8910
 
 if [ -x /usr/bin/enapter-aliases ]; then
