@@ -155,10 +155,10 @@ set log syslog
 ## enable SSL for the HTTP interface.
 #
 set httpd port 2812 and
-    use address 10.88.0.1  # bind on podman network GW ip to avoid binding on 0.0.0.0
+    use address 0.0.0.0  # only accept connection from localhost (drop if you use M/Monit)
     allow 127.0.0.1        # allow localhost to connect to the server and
     allow 10.88.0.0/16     # allow podman network to connect to server and
-    #allow admin:monit     # require user 'admin' with password 'monit'
+    #allow admin:monit      # require user 'admin' with password 'monit'
     #with ssl {            # enable SSL/TLS and set path to server certificate
     #    pemfile: /etc/ssl/certs/monit.pem
     #}
