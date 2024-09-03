@@ -1,10 +1,9 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
-SRC_URI += "file://0001-Replace-login.patch \
-            file://coredump.conf \
+SRC_URI += "file://coredump.conf \
            "
 
-RDEPENDS:${PN} = "bash enapter-login"
+RDEPENDS:${PN} = "bash"
 
 do_install:append() {
     install -d ${D}/${sysconfdir}/systemd/coredump.conf.d

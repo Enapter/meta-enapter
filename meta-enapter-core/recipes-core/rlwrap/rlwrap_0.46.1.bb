@@ -10,7 +10,7 @@ FILESEXTRAPATHS:append := "${THISDIR}/files:"
 SRC_URI = "git://github.com/hanslub42/rlwrap.git;protocol=https;nobranch=1 \
            file://0001-Do-not-build-filters-and-docs.patch \
           "
-SRCREV = "0f0e1b36653289218ba2d1d1027242a65858176d"
+SRCREV = "8c7086dd2385bb307cdadb893f2566b4e8da8ad9"
 
 DEPENDS += " readline"
 S = "${WORKDIR}/git"
