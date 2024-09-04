@@ -10,6 +10,7 @@ SRC_URI += "\
     file://usb_wwan.cfg \
     file://cdc_mbim.cfg \
     file://i2c_smbus.cfg \
+    file://module_sig_format.cfg \
     "
 
 KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
@@ -21,6 +22,7 @@ KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
                          features/mmc/mmc-realtek.scc \
                          features/ocicontainer/ocicontainer.scc \
                          features/i2c/i2cdbg.scc \
+                         features/ima/modsign.scc \
                          cfg/vmware-guest.scc \
                          squashfs.cfg \
                          can.cfg \
@@ -29,6 +31,7 @@ KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
                          usb_wwan.cfg \
                          cdc_mbim.cfg \
                          i2c_smbus.cfg \
+                         module_sig_format.cfg \
                         "
 
 SIGNING_DIR ?= "${B}"
@@ -43,6 +46,8 @@ SRCREV_machine = "fb2635ac69abac0060cc2be2873dc4f524f12e66"
 SRCREV_meta = "d26f4f3307216e06ee0b74fa9b57b17fba72a988"
 LINUX_VERSION = "6.1.62"
 LINUX_VERSION_EXTENSION = "-enapter"
+
+inherit ${@bb.utils.contains('DISTRO_FEATURES', 'modsign', 'kernel-modsign', '', d)}
 
 MODSIGN_PRIVKEY = "${SECURE_BOOT_SIGNING_KEY}"
 MODSIGN_X509 = "${SECURE_BOOT_SIGNING_CERT}"
