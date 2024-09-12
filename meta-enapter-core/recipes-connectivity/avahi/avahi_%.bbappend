@@ -5,10 +5,10 @@ SRC_URI += "file://avahi-daemon.conf \
            "
 
 do_install:append() {
-    install -m 0644 ${WORKDIR}/avahi-daemon.conf ${D}/etc/avahi/avahi-daemon.conf
-    install -m 0644 ${WORKDIR}/http.service ${D}/etc/avahi/services/http.service
+    install -m 0644 ${WORKDIR}/avahi-daemon.conf ${D}${sysconfdir}/avahi/avahi-daemon.conf
+    install -m 0644 ${WORKDIR}/http.service ${D}${sysconfdir}/avahi/services/http.service
 }
 
 FILES:${PN} += " \
-        /etc/avahi/services/http.service \
+        ${sysconfdir}/avahi/services/http.service \
 "

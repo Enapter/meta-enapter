@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
+. /usr/share/scripts/enapter-functions
 
 while true; do
   read -p "Are you sure you want to perform a reboot? (y/n) " yn
@@ -15,6 +16,6 @@ while true; do
   esac
 done
 
-sync
+ensure_sync
 
 (sleep 1; systemctl --force --force reboot) &

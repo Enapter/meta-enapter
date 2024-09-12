@@ -10,6 +10,8 @@ SRC_URI = " \
           file://enapter-init-mount-fs.service \
           file://enapter-init-mkswap.sh \
           file://enapter-init-mkswap.service \
+          file://docker-compose.yml \
+          file://docker-images-readme.txt \
           "
 
 PACKAGES = "${PN}"
@@ -29,4 +31,13 @@ do_install() {
 
   install -d ${D}${systemd_unitdir}/system/
   install -m 0644 ${WORKDIR}/*.service ${D}${systemd_unitdir}/system/
+
+  install -d ${D}${datadir}/examples
+  install -m 0755 ${WORKDIR}/docker-compose.yml ${D}${datadir}/examples/docker-compose.yml
+  install -m 0755 ${WORKDIR}/docker-images-readme.txt ${D}${datadir}/examples/docker-images-readme.txt
 }
+
+FILES:${PN} += " \
+    ${datadir}/examples/docker-compose.yml \
+    ${datadir}/examples/docker-images-readme.txt \
+    "

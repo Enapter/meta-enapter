@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
+. /usr/share/scripts/enapter-functions
+
 hosts=$1
 timeout=${2:-1}
 

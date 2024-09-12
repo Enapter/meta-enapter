@@ -6,6 +6,7 @@ SRC_URI = " \
           file://LICENSE \
           file://enapter-boot-fallback-enable.sh \
           file://enapter-boot-success.sh \
+          file://enapter-functions.sh \
           file://enapter-linux-install.sh \
           file://enapter-linux-update.sh \
           file://enapter-perform-factory-reset.sh \
@@ -13,6 +14,7 @@ SRC_URI = " \
           file://enapter-set-password.sh \
           file://enapter-set-userspace-disk.sh \
           file://enapter-shutdown.sh \
+          file://enapter-variables.sh \
           file://enapter-wait-for-ports.sh \
           "
 
@@ -31,4 +33,13 @@ do_install() {
     install -m 0755 ${WORKDIR}/enapter-set-userspace-disk.sh ${D}${bindir}/enapter-set-userspace-disk
     install -m 0755 ${WORKDIR}/enapter-shutdown.sh ${D}${bindir}/enapter-shutdown
     install -m 0755 ${WORKDIR}/enapter-wait-for-ports.sh ${D}${bindir}/enapter-wait-for-ports
+
+    install -d ${D}${datadir}/scripts
+    install -m 0755 ${WORKDIR}/enapter-functions.sh ${D}${datadir}/scripts/enapter-functions
+    install -m 0755 ${WORKDIR}/enapter-variables.sh ${D}${datadir}/scripts/enapter-variables
 }
+
+FILES:${PN} += " \
+    ${datadir}/scripts/enapter-functions \
+    ${datadir}/scripts/enapter-variables \
+    "

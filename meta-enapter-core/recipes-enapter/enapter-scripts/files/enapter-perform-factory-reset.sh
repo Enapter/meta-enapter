@@ -2,6 +2,8 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
+. /usr/share/scripts/enapter-functions
+
 while true; do
   read -p "Are you sure you want to perform a factory reset? (y/n) " yn
 
@@ -14,8 +16,8 @@ while true; do
   esac
 done
 
-if [ -L /dev/disk/by-label/enp-data-disk ] ; then
-  /sbin/e2label /dev/disk/by-label/enp-data-disk "enp-data-reset" && sleep 1 && /sbin/reboot -f
+if [ -L "$hdd_data_device" ] ; then
+  /sbin/e2label "$hdd_data_device" "$disk_data_reset_label" && sleep 1 && /sbin/reboot -f
 fi
 
 echo "User data disk is not set. Please set it by 'set-data-disk' command"

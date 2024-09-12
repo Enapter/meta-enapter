@@ -1,0 +1,21 @@
+# Docker Compose documentation: https://docs.docker.com/compose/
+version: "3"
+
+# Uncomment the lines below (remove \`#\` symbol) to run Grafana on the gateway.
+# It's already configured with Enapter datasource plugin, no further configuration needed.
+# Grafana will be available on port :3000 on the gateway, e.g. http://enapter-gateway.local:3000
+# Enapter datasource documentation: https://go.enapter.com/grafana-docs
+#
+# Run \`systemctl restart enapter-docker-compose\` after updating this file.
+#
+#services:
+#  grafana:
+#    user: root
+#    ports:
+#      - '0.0.0.0:3000:3000'
+#    env_file: /user/etc/enapter/enapter-token.env
+#    environment:
+#      - 'TELEMETRY_API_BASE_URL=http://10.88.0.1/api/telemetry'
+#    volumes:
+#      - /user/grafana-data:/var/lib/grafana
+#    image: enapter/grafana-with-telemetry-datasource-plugin

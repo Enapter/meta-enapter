@@ -4,11 +4,10 @@
 
 set -e
 
-readonly rwfs_file_path="/user/etc/enapter/rwfs"
 readonly var_log_dir="/var/log"
 readonly enapter_var_log_dir="/user/var/log"
 
-if [[ ! -f "$rwfs_file_path" ]]; then
+if [[ ! -f "$user_rwfs_file" ]]; then
     exit 0
 fi
 

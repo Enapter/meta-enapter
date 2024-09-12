@@ -4,11 +4,7 @@
 
 set -e
 
-# Global constants
-readonly user_label="enp-data-disk"
-readonly recovery_label="enp-recovery"
-readonly boot_label="enp-os"
-readonly images_label="enp-images"
+. /usr/share/scripts/enapter-functions
 
 create_fs() {
     local label=$1
@@ -55,10 +51,10 @@ fi
 
 sfdisk --delete "$disk" || true
 
-recovery_part="size=2048m name=$recovery_label type=L"
-boot_part="size=8192m name=$boot_label type=U"
-images_part="size=16384m name=$images_label type=L"
-user_part="name=$user_label type=L"
+recovery_part="size=2048m name=$disk_recovery_label type=L"
+boot_part="size=8192m name=$disk_boot_label type=U"
+images_part="size=16384m name=$disk_images_label type=L"
+user_part="name=$disk_data_label type=L"
 
 # shellcheck disable=SC2059
 printf "$recovery_part\n $boot_part\n $images_part\n $user_part" | \
@@ -67,14 +63,14 @@ printf "$recovery_part\n $boot_part\n $images_part\n $user_part" | \
 udevadm trigger --action=add
 udevadm settle || sleep 3
 
-create_fs "$user_label" || die "User fs creation failed"
+create_fs "$disk_data_label" || die "User fs creation failed"
 sleep 1
-create_fs "$recovery_label" || die "Recovery fs creation failed"
+create_fs "$disk_recovery_label" || die "Recovery fs creation failed"
 sleep 1
-create_fs "$images_label" || die "Images fs creation failed"
+create_fs "$disk_images_label" || die "Images fs creation failed"
 sleep 1
-create_vfat_fs "$boot_label" || die "Boot fs creation failed"
+create_vfat_fs "$disk_boot_label" || die "Boot fs creation failed"
 
-sync
+ensure_sync
 
 sleep 1 && reboot -f

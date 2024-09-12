@@ -4,8 +4,7 @@
 
 set -o errexit
 
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+. /usr/share/scripts/enapter-functions
 
 UPDATE_FILES="bzImage
 initrd
@@ -15,30 +14,12 @@ grub.cfg
 version.txt
 SHA256SUMS"
 
-info() {
-  echo "[INFO] $1"
-  echo
-}
-
-fatal() {
-  echo 1>&2
-  echo -e "${RED}[FATAL] $1${NC}" 1>&2
-  echo 1>&2
-  exit 1
-}
-
 update() {
     update_file="$1"
     opts="$2"
-    disk_boot_label="enp-os"
-    efi_enapter="/EFI/enapter"
-    layers="/layers"
-    efi_boot="/EFI/BOOT"
-    hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
-    boot_mount="/boot"
 
     if [[ ! -L "$hdd_boot_device" ]]; then
-      fatal "Partition with label enp-os (installation disk) not found, please do Enapter Gateway setup first."
+      fatal "Partition with label $disk_boot_label (installation disk) not found, please do Enapter Gateway setup first."
     fi
 
     info "Unpacking update file..."
@@ -101,36 +82,36 @@ update() {
     info "Creating backup, please wait"
 
     cp -vf "$boot_mount$efi_enapter/bzImage" "$boot_mount$efi_enapter/bzImage.backup"
-    sync; sync; sync
+    ensure_sync
     cp -vf "$boot_mount$efi_enapter/initrd" "$boot_mount$efi_enapter/initrd.backup"
-    sync; sync; sync
+    ensure_sync
 
     info "Updating bootloader."
 
     cp -vf "$tmp_dir/grubx64.efi" "$boot_mount$efi_boot/grubx64.efi"
-    sync; sync; sync
+    ensure_sync
     cp -vf "$tmp_dir/grub.cfg" "$boot_mount$efi_boot/grub.cfg"
-    sync; sync; sync
+    ensure_sync
 
     info "Copying system files, please wait..."
 
     cp -vf "$tmp_dir/bzImage" "$boot_mount$efi_enapter/bzImage"
-    sync; sync; sync
+    ensure_sync
     cp -vf "$tmp_dir/initrd" "$boot_mount$efi_enapter/initrd"
-    sync; sync; sync
+    ensure_sync
     cp -vf "$tmp_dir/rootfs.img" "$boot_mount$efi_enapter/rootfs.img.update"
-    sync; sync; sync
+    ensure_sync
     cp -vf "$tmp_dir/version.txt" "$boot_mount$efi_enapter/version.txt.update"
-    sync; sync; sync
+    ensure_sync
 
     if [[ -f "$tmp_dir/enapter-iot.img" ]]; then
       cp -vf "$tmp_dir/enapter-iot.img" "$boot_mount$layers/enapter-iot.img.update"
-      sync; sync; sync
+      ensure_sync
     fi
 
     if [[ -f "$tmp_dir/enapter-iot-enterprise.img" ]]; then
       cp -vf "$tmp_dir/enapter-iot-enterprise.img" "$boot_mount$layers/enapter-iot-enterprise.img.update"
-      sync; sync; sync
+      ensure_sync
     fi
 
     info "Re-mounting boot partition as R/O"

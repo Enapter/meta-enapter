@@ -2,6 +2,12 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
+. /usr/share/scripts/enapter-variables
+
+ensure_sync() {
+  sync; sync; sync
+}
+
 rootfs_enabled() {
     return 0
 }
@@ -22,12 +28,10 @@ wait_for_device() {
 }
 
 do_patch_script() {
-    rootfs_patch_script="patch_rootfs.sh"
-    root_mount="$1"
-    boot_mount="$2"
+    local_root_mount="$1"
 
     if [ -x "$boot_mount/$rootfs_patch_script" ]; then
-        "$boot_mount/$rootfs_patch_script" "$root_mount" "$boot_mount" || true
+        "$boot_mount/$rootfs_patch_script" "$local_root_mount" "$boot_mount" || true
     fi
 }
 
@@ -41,14 +45,13 @@ do_maybe_reset() {
 
 do_reset() {
     part="$1"
-    label="enp-data-disk"
 
     wipefs -f -a "$part"
     udevadm settle || sleep 3
 
     i=1
     while [ "${i}" -le 5 ]; do
-        mkfs.ext4 -q -F -m0 -L "$label" "$part" && return 0 || true
+        mkfs.ext4 -q -F -m0 -L "$disk_data_label" "$part" && return 0 || true
         echo >&2 "$part mkfs failed, looks mounted (attemp $i)"
         sleep 2
         umount "$part" || true
@@ -61,21 +64,18 @@ do_reset() {
 }
 
 do_password_reset() {
-    data_disk_device="$1"
     data_disk_mount="/mnt/data_disk"
 
-    if [ -e "$data_disk_device" ] ; then
+    if [ -e "$hdd_data_device" ] ; then
         mkdir -p "$data_disk_mount"
-        mount "$data_disk_device" "$data_disk_mount" || return 1
+        mount "$hdd_data_device" "$data_disk_mount" || return 1
 
-        rm "$data_disk_mount/etc/enapter/enapter-superuser-password.env" || return 1
+        rm "$data_disk_mount$etc_enapter/$enapter_superuser_password_env_file" || return 1
     fi
 }
 
 do_update() {
-    boot_mount="$1"
-
-    updates_require_reboot="EFI/enapter/bzImage.update EFI/enapter/initrd.update"
+    updates_require_reboot="$efi_enapter_dir/bzImage.update $efi_enapter_dir/initrd.update"
 
     requires_reboot=0
     disk_in_rw_mode=0
@@ -94,7 +94,7 @@ do_update() {
 
         info "$update_file found, updating ..."
 
-        base_file="${update_file/.update/}"
+        base_file="$(echo "$update_file" | sed 's/.update//')"
         backup_file="$base_file.backup"
 
         if [ $disk_in_rw_mode -eq 0 ]; then
@@ -104,20 +104,20 @@ do_update() {
 
         if [ -e "$base_file" ]; then
             mv -v -f "$base_file" "$backup_file"
-            sync; sync; sync
+            ensure_sync
         else
             info "$base_file is not exists, skipping backup step"
         fi
 
         mv -v -f "$update_file" "$base_file"
-        sync; sync; sync
+        ensure_sync
     done
 
     if [ "$disk_in_rw_mode" -ne 0 ]; then
         info "Some files was updated"
 
         info "Syncing disks"
-        sync; sync; sync
+        ensure_sync
 
         mount -o remount,ro "$boot_mount" || {
             info "ERROR: remount boot partition to RO mode failed, rebooting"
@@ -134,24 +134,6 @@ do_update() {
 }
 
 rootfs_run() {
-    usb_boot_label="enp-os-usb"
-    disk_boot_label="enp-os"
-    data_disk_label="enp-data-disk"
-    reset_fs_label="enp-data-reset"
-
-    usb_boot_device="/dev/disk/by-label/$usb_boot_label"
-    hdd_boot_device="/dev/disk/by-label/$disk_boot_label"
-    data_disk_device="/dev/disk/by-label/$data_disk_label"
-    reset_device="/dev/disk/by-label/$reset_fs_label"
-
-    boot_mount="/boot"
-    root_ro_mount="/overlay_ro"
-    layers_ro_mount_base_dir="/layers"
-    root_rw_mount="/overlay_rw"
-
-    overlayfs_upperdir="$root_rw_mount/upperdir"
-    overlayfs_workdir="$root_rw_mount/work"
-
     load_kernel_module overlay
     load_kernel_module squashfs
 
@@ -206,20 +188,20 @@ rootfs_run() {
     debug "Boot device mounted"
 
     if [ -z "$bootparam_usebackup" ]; then
-        do_update "$boot_mount" || info "[!] Update failed"
+        do_update || info "[!] Update failed"
     fi
 
     if [ -n "$bootparam_factory_reset" ]; then
-        do_maybe_reset "$data_disk_device" || info "[!] Factroy reset failed"
+        do_maybe_reset "$hdd_data_device" || info "[!] Factroy reset failed"
     fi
 
     if [ -n "$bootparam_password_reset" ]; then
-        do_password_reset "$data_disk_device" || info "[!] Password reset failed"
+        do_password_reset || info "[!] Password reset failed"
     fi
 
-    do_maybe_reset "$reset_device" || info "[!] Factory reset failed"
+    do_maybe_reset "$hdd_data_reset_device" || info "[!] Factory reset failed"
 
-    root_fs_image_path="$boot_mount/EFI/enapter/rootfs.img"
+    root_fs_image_path="$boot_mount$efi_enapter/rootfs.img"
     if [ -n "$bootparam_usebackup" ]; then
         if [ -e "$root_fs_image_path.backup" ]; then
             info "[!] Using rootfs.img.backup"
@@ -236,7 +218,7 @@ rootfs_run() {
     debug "rootfs squashfs mounted"
 
     root_additional_lowerdirs=""
-    layer_images=$(find "$boot_mount/layers" -name "*.img")
+    layer_images=$(find "$boot_mount$layers_ro_mount_base_dir" -name "*.img")
 
     for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then
@@ -254,8 +236,10 @@ rootfs_run() {
             mkdir -p "$layers_ro_mount_base_dir/$layer_name"
             mount -o loop -t squashfs "$layer_image" "$layers_ro_mount_base_dir/$layer_name"
 
-            if [ -d "$layers_ro_mount_base_dir/$layer_name/rootfs" ]; then
-               root_additional_lowerdirs="$layers_ro_mount_base_dir/$layer_name/rootfs:$root_additional_lowerdirs"
+            layer_rootfs_dir="rootfs"
+
+            if [ -d "$layers_ro_mount_base_dir/$layer_name/$layer_rootfs_dir" ]; then
+               root_additional_lowerdirs="$layers_ro_mount_base_dir/$layer_name/$layer_rootfs_dir:$root_additional_lowerdirs"
             fi
         fi
     done
@@ -273,16 +257,16 @@ rootfs_run() {
     debug "overlayfs mounted"
 
     if [ -z "$bootparam_usebackup" ]; then
-        do_patch_script "$ROOTFS_DIR" "$boot_mount"
+        do_patch_script "$ROOTFS_DIR"
     fi
 
     mkdir -p "$ROOTFS_DIR/dev"
 
     # Add links to rootfs
-    mkdir -p "$ROOTFS_DIR/$boot_mount" "$ROOTFS_DIR/$root_ro_mount" "$ROOTFS_DIR/$root_rw_mount"
-    mount --bind "$boot_mount" "$ROOTFS_DIR/$boot_mount"
-    mount --bind "$root_ro_mount" "$ROOTFS_DIR/$root_ro_mount"
-    mount --bind "$root_rw_mount" "$ROOTFS_DIR/$root_rw_mount"
+    mkdir -p "$ROOTFS_DIR$boot_mount" "$ROOTFS_DIR$root_ro_mount" "$ROOTFS_DIR$root_rw_mount"
+    mount --bind "$boot_mount" "$ROOTFS_DIR$boot_mount"
+    mount --bind "$root_ro_mount" "$ROOTFS_DIR$root_ro_mount"
+    mount --bind "$root_rw_mount" "$ROOTFS_DIR$root_rw_mount"
 
     for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then

@@ -1,18 +1,16 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += "file://password-reset \
-            file://rootfs \
+SRC_URI += "file://rootfs \
             file://init \
             file://finish \
+            file://enapter-variables.sh \
 "
 
 do_install:append() {
-    install -m 0755 ${WORKDIR}/password-reset ${D}/init.d/20-passwordreset
+    install -d ${D}${datadir}/scripts
+    install -m 0755 ${WORKDIR}/enapter-variables.sh ${D}${datadir}/scripts/enapter-variables
 }
 
-FILES:initramfs-module-password-reset += " \
-    /init.d/20-passwordreset \
+FILES:${PN}-base += " \
+    ${datadir}/scripts/enapter-variables \
     "
-
-PACKAGES += "initramfs-module-password-reset \
-            "

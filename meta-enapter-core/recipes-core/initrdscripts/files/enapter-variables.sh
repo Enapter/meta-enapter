@@ -1,0 +1,1 @@
+../../../recipes-enapter/enapter-scripts/files/enapter-variables.sh

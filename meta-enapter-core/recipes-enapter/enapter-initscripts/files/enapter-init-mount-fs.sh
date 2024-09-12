@@ -9,161 +9,115 @@
 
 set -e
 
-# Global constants
-readonly user_fs_label="enp-data-disk"
-readonly user_fs_mountpoint="/user"
+. /usr/share/scripts/enapter-functions
 
-readonly recovery_fs_label="enp-recovery"
-readonly recovery_fs_mountpoint="/recovery"
-readonly recovery_disk_path="/dev/disk/by-label/$recovery_fs_label"
+disk_opts="data=ordered,barrier=1,rw,nosuid,nodev,relatime"
+ro_disk_opts="defaults,ro,nodev,nosuid"
 
-readonly export_fs_label="enp-export"
-readonly export_fs_mountpoint="/export"
-readonly export_disk_path="/dev/disk/by-label/$export_fs_label"
-
-readonly images_fs_label="enp-images"
-readonly images_fs_mountpoint="/user/images"
-readonly images_disk_path="/dev/disk/by-label/$images_fs_label"
-
-readonly disk_opts="data=ordered,barrier=1,rw,nosuid,nodev,relatime"
-readonly ro_disk_opts="defaults,ro,nodev,nosuid"
-
-readonly docker_compose_dir="etc/docker-compose"
-readonly docker_compose_images_dir="$docker_compose_dir/images"
-readonly docker_compose_file="$docker_compose_dir/docker-compose.yml"
-readonly docker_compose_images_readme_file="$docker_compose_images_dir/readme.txt"
-
-user_disk_path="/dev/disk/by-label/$user_fs_label"
 # if we have userspace disk (have a partition with user fs label) then we are in read/write mode
 # else we are using temp filesystem instead of real disks
-if [ -b "$user_disk_path" ]; then
+if [ -b "$hdd_data_device" ]; then
   rw_mode="yes"
   user_disk_type="auto"
 else
   rw_mode=""
-  user_disk_path='tmpfs'
+  hdd_data_device='tmpfs'
   user_disk_type='tmpfs'
 fi
 
 status=0
 
-fsck.ext4 -pf "$user_disk_path" || true
-fsck.ext4 -nf "$user_disk_path" || { status=$?; true; }
+fsck.ext4 -pf "$hdd_data_device" || true
+fsck.ext4 -nf "$hdd_data_device" || { status=$?; true; }
 if [ $status -ne 0 ]; then
-  echo "ERROR (fsck): $user_disk_path seems to be corrupted, consider recovery operation"
+  echo "ERROR (fsck): $hdd_data_device seems to be corrupted, consider recovery operation"
 fi
 
 # create mountpoint if not exists
-test -d "$user_fs_mountpoint" || mkdir -p "$user_fs_mountpoint"
+test -d "$user_fs_mount" || mkdir -p "$user_fs_mount"
 
-mount "$user_disk_path" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mountpoint" || { status=$?; true; }
+mount "$hdd_data_device" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mount" || { status=$?; true; }
 if [ $status -ne 0 ]; then
-  echo "ERROR (fsck): failed to mount $user_disk_path, trying fsck -y ..."
-  fsck.ext4 -yf "$user_disk_path" || { status=$?; true; }
+  echo "ERROR (fsck): failed to mount $hdd_data_device, trying fsck -y ..."
+  fsck.ext4 -yf "$hdd_data_device" || { status=$?; true; }
   if [ $status -ne 0 ]; then
     echo "ERROR (fsck): fsck -y failed, consider recovery operation"
   fi
-  mount "$user_disk_path" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mountpoint"
+  mount "$hdd_data_device" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mount"
 fi
 
 # create userspace directories structure
 for dir in bin etc lib lib64 libexec share sbin var var/lib tmp /images $docker_compose_dir $docker_compose_images_dir ; do
-  test -d "$user_fs_mountpoint/$dir" || mkdir -p "$user_fs_mountpoint/$dir"
+  test -d "$user_fs_mount/$dir" || mkdir -p "$user_fs_mount/$dir"
 done
 
 # cleanup /var/tmp, due to bug in 2.1.0-beta1
-test -d "$user_fs_mountpoint/var/tmp" && rm -rf "$user_fs_mountpoint/var/tmp"
+test -d "$user_fs_mount/var/tmp" && rm -rf "$user_fs_mount/var/tmp"
 # tmp should be clean after each reboot, its just a rule for /tmp dirs
 # we use find command here to not delete directory itself, only files
-test -d "$user_fs_mountpoint/tmp" && find "$user_fs_mountpoint/tmp" -mindepth 1 -delete
+test -d "$user_fs_mount/tmp" && find "$user_fs_mount/tmp" -mindepth 1 -delete
 
 # cleanup for Podman, because Podman can boot with corrupted state
 # and its hard to fix it when gateway already booted
-rm -rf "$user_fs_mountpoint/var/lib/containers"
-rm -rf "$user_fs_mountpoint/run/containers"
+rm -rf "$user_fs_mount/var/lib/containers"
+rm -rf "$user_fs_mount/run/containers"
 
 # cleaup of unpacked images dir to be sure we are starting clean
-rm -rf "$user_fs_mountpoint/usr/share/enapter"
+rm -rf "$user_fs_mount/usr/share/enapter"
 
-if [ ! -f "$user_fs_mountpoint/$docker_compose_file" ]; then
-    cat << EOF > "$user_fs_mountpoint/$docker_compose_file"
-# Docker Compose documentation: https://docs.docker.com/compose/
-version: "3"
-
-# Uncomment the lines below (remove \`#\` symbol) to run Grafana on the gateway.
-# It's already configured with Enapter datasource plugin, no further configuration needed.
-# Grafana will be available on port :3000 on the gateway, e.g. http://enapter-gateway.local:3000
-# Enapter datasource documentation: https://go.enapter.com/grafana-docs
-#
-# Run \`systemctl restart enapter-docker-compose\` after updating this file.
-#
-#services:
-#  grafana:
-#    user: root
-#    ports:
-#      - '0.0.0.0:3000:3000'
-#    env_file: /user/etc/enapter/enapter-token.env
-#    environment:
-#      - 'TELEMETRY_API_BASE_URL=http://10.88.0.1/api/telemetry'
-#    volumes:
-#      - /user/grafana-data:/var/lib/grafana
-#    image: enapter/grafana-with-telemetry-datasource-plugin
-EOF
+if [ ! -f "$user_fs_mount/$docker_compose_file" ]; then
+  cp /usr/share/examples/docker-compose.yml "$user_fs_mount/$docker_compose_file"
 fi
 
-if [ ! -f "$user_fs_mountpoint/$docker_compose_images_readme_file" ]; then
-    cat << EOF > "$user_fs_mountpoint/$docker_compose_images_readme_file"
-Docker images (in tar format) placed in this directory will be automatically loaded after Enapter Gateway restart.
-
-It is typically used for Docker images not available in the public registries, e.g. company private Docker registries.
-EOF
+if [ ! -f "$user_fs_mount/$docker_compose_images_readme_file" ]; then
+  cp /usr/share/examples/docker-images-readme.txt "$user_fs_mount/$docker_compose_images_readme_file"
 fi
 
 if [ -n "$rw_mode" ]; then
-  mkdir -p "$user_fs_mountpoint/etc/enapter"
+  mkdir -p "$user_etc_enapter"
   # if we are in read/write mode then create special file
-  touch "$user_fs_mountpoint/etc/enapter/rwfs"
+  touch "$user_fs_mount$etc_enapter/$rwfs_file"
 
   # if we have recovery disk (have a partition with enp-recovery label) then we mount it
-  if [ -b "$recovery_disk_path" ]; then
-    test -d "$recovery_fs_mountpoint" || mkdir -p "$recovery_fs_mountpoint"
+  if [ -b "$hdd_recovery_device" ]; then
+    test -d "$recovery_mount" || mkdir -p "$recovery_mount"
 
-    mount "$recovery_disk_path" -t "auto" -o "$ro_disk_opts" "$recovery_fs_mountpoint"
+    mount "$hdd_recovery_device" -t "auto" -o "$ro_disk_opts" "$recovery_mount"
   fi
 
   # if we have export data disk (have a partition with enp-export label) then we mount it
-  if [ -b "$export_disk_path" ]; then
-    test -d "$export_fs_mountpoint" || mkdir -p "$export_fs_mountpoint"
+  if [ -b "$disk_export_label" ]; then
+    test -d "$export_mount" || mkdir -p "$export_mount"
 
-    mount "$export_disk_path" -t "auto" -o "$ro_disk_opts" "$export_fs_mountpoint"
+    mount "$disk_export_label" -t "auto" -o "$ro_disk_opts" "$export_mount"
   else
-    test -d "$user_fs_mountpoint/export" || mkdir -p "$user_fs_mountpoint/export"
-    test -d "$export_fs_mountpoint" || ln -s "$user_fs_mountpoint/export" "$export_fs_mountpoint"
+    test -d "$user_fs_mount/$export_mount" || mkdir -p "$user_fs_mount/$export_mount"
+    test -d "$export_mount" || ln -s "$user_fs_mount/$export_mount" "$export_mount"
   fi
 
   # if we have images data disk (have a partition with enp-images label) then we mount it
-  if [ -b "$images_disk_path" ]; then
-    test -d "$images_fs_mountpoint" || mkdir -p "$images_fs_mountpoint"
+  if [ -b "$hdd_images_device" ]; then
+    test -d "$images_mount" || mkdir -p "$images_mount"
 
-    mount "$images_disk_path" -t "auto" -o "$ro_disk_opts" "$images_fs_mountpoint"
+    mount "$hdd_images_device" -t "auto" -o "$ro_disk_opts" "$images_mount"
 
-    if [ ! -f "$images_fs_mountpoint/overlay-images/images.lock" ]; then
-      mount -o "remount,rw" "$images_fs_mountpoint"
-      mkdir -p "$images_fs_mountpoint/overlay-images"
-      openssl rand -hex 32 | tr -d '\n' > "$images_fs_mountpoint/overlay-images/images.lock"
-      mkdir -p "$images_fs_mountpoint/overlay-layers"
-      openssl rand -hex 32 | tr -d '\n' > "$images_fs_mountpoint/overlay-layers/layers.lock"
+    if [ ! -f "$images_mount$overlay_images_lock" ]; then
+      mount -o "remount,rw" "$images_mount"
+      mkdir -p "$images_mount$overlay_images_mount"
+      openssl rand -hex 32 | tr -d '\n' > "$images_mount$overlay_images_lock"
+      mkdir -p "$images_mount$overlay_layers_mount"
+      openssl rand -hex 32 | tr -d '\n' > "$images_mount$overlay_layers_lock"
       sync; sync; sync
-      mount -o "remount,ro" "$images_fs_mountpoint"
+      mount -o "remount,ro" "$images_mount"
     fi
   else
-    test -d "$images_fs_mountpoint" || mkdir -p "$images_fs_mountpoint"
+    test -d "$images_mount" || mkdir -p "$images_mount"
 
-    if [ ! -f "$images_fs_mountpoint/overlay-images/images.lock" ]; then
-      mkdir -p "$images_fs_mountpoint/overlay-images"
-      openssl rand -hex 32 | tr -d '\n' > "$images_fs_mountpoint/overlay-images/images.lock"
-      mkdir -p "$images_fs_mountpoint/overlay-layers"
-      openssl rand -hex 32 | tr -d '\n' > "$images_fs_mountpoint/overlay-layers/layers.lock"
+    if [ ! -f "$images_mount$overlay_images_lock" ]; then
+      mkdir -p "$images_mount$overlay_images_mount"
+      openssl rand -hex 32 | tr -d '\n' > "$images_mount$overlay_images_lock"
+      mkdir -p "$images_mount$overlay_layers_mount"
+      openssl rand -hex 32 | tr -d '\n' > "$images_mount$overlay_layers_lock"
       sync; sync; sync
     fi
   fi

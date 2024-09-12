@@ -4,17 +4,7 @@
 
 set -o errexit
 
-info() {
-  echo "[INFO] $1"
-  echo
-}
-
-fatal() {
-  echo 1>&2
-  echo -e "${RED}[FATAL] $1${NC}" 1>&2
-  echo 1>&2
-  exit 1
-}
+. /usr/share/scripts/enapter-functions
 
 conn_name=$(/usr/bin/nmcli --colors=no --terse --field name,type conn show | grep "802-11-wireless" | sed "s/:802-11-wireless//")
 

@@ -4,8 +4,10 @@
 
 set -ex
 
+. /usr/share/scripts/enapter-functions
+
 limit_seconds=600
-boot_success=$(grub-editenv /boot/EFI/BOOT/grubenv list | sed -n 's/^boot_success=//p')
+boot_success=$(grub-editenv "$grubenv_path" list | sed -n 's/^boot_success=//p')
 boot_backup=$(cat /proc/cmdline | grep usebackup > /dev/null && echo "1" || echo "0")
 uptime=$(awk '{printf "%0.f", $1}' < /proc/uptime)
 
