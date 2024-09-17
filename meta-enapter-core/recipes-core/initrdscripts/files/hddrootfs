@@ -8,8 +8,8 @@ ensure_sync() {
   sync; sync; sync
 }
 
-rootfs_enabled() {
-    if [ -n "${bootparam_rauc_slot}" ]; then
+hddrootfs_enabled() {
+    if [ -z "${bootparam_rauc_slot}" ]; then
         return 1
     fi
     return 0
@@ -50,14 +50,6 @@ wait_for_device() {
     fi
 }
 
-execute_patch_script() {
-    local_root_mount="$1"
-
-    if [ -x "$boot_mount/$rootfs_patch_script" ]; then
-        "$boot_mount/$rootfs_patch_script" "$local_root_mount" "$boot_mount" || true
-    fi
-}
-
 perform_reset() {
     disk_to_reset="$1"
 
@@ -93,66 +85,7 @@ perform_password_reset() {
     fi
 }
 
-perform_update() {
-    updates_require_reboot="$efi_enapter_dir/bzImage.update $efi_enapter_dir/initrd.update"
-
-    requires_reboot=0
-    disk_in_rw_mode=0
-
-    info "Checking for available updates"
-
-    update_files=$(find "$boot_mount" -name "*.update")
-
-    for update_file in $update_files; do
-        for update_requires_reboot_file in $updates_require_reboot; do
-            if [ "$update_file" = "$boot_mount/$update_requires_reboot_file" ]; then
-                info "One of update file requires reboot."
-                requires_reboot=1
-            fi
-        done
-
-        info "$update_file found, updating ..."
-
-        base_file="$(echo "$update_file" | sed 's/.update//')"
-        backup_file="$base_file.backup"
-
-        if [ $disk_in_rw_mode -eq 0 ]; then
-            mount -v -o remount,rw "$boot_mount"
-            disk_in_rw_mode=1
-        fi
-
-        if [ -e "$base_file" ]; then
-            mv -v -f "$base_file" "$backup_file"
-            ensure_sync
-        else
-            info "$base_file is not exists, skipping backup step"
-        fi
-
-        mv -v -f "$update_file" "$base_file"
-        ensure_sync
-    done
-
-    if [ "$disk_in_rw_mode" -ne 0 ]; then
-        info "Some files was updated"
-
-        info "Syncing disks"
-        ensure_sync
-
-        mount -o remount,ro "$boot_mount" || {
-            info "ERROR: remount boot partition to RO mode failed, rebooting"
-            reboot -f
-        }
-
-        if [ "$requires_reboot" -ne 0 ]; then
-            info "Some of updated files require reboot, rebooting"
-            reboot -f
-        else
-            info "No reboot was requested, continuing"
-        fi
-    fi
-}
-
-rootfs_run() {
+hddrootfs_run() {
     load_kernel_module overlay
     load_kernel_module squashfs
 
@@ -166,24 +99,22 @@ rootfs_run() {
         return
     fi
 
-    mkdir -p "$boot_mount"
+    mkdir -p "$root_ro_mount"
+    mkdir -p "$app_ro_mount"
 
-    boot_device=""
+    rootfs_device="$(resolve_device "$bootparam_root")"
+    appfs_device="$(resolve_device "$bootparam_app")"
 
-    if [ -n "$bootparam_root" ]; then
-        debug "Selected root: $bootparam_root..."
-        boot_device="$(resolve_device "$bootparam_root")"
-    fi
+    wait_for_device "$rootfs_device"
+    wait_for_device "$appfs_device"
 
-    wait_for_device "$boot_device"
-    fsck.vfat -pf "$boot_device" || info "[!] Got fsck errors"
-    mount "$boot_device" -o ro "$boot_mount" || fatal "Failed to mount boot device"
+    fsck.vfat -pf "$rootfs_device" || true
+    fsck.vfat -pf "$appfs_device" || true
 
-    debug "Boot device mounted"
+    mount "$rootfs_device" -o ro "$root_ro_mount" || fatal "Failed to mount rootfs device"
+    mount "$appfs_device" -o ro "$app_ro_mount" || fatal "Failed to mount appfs device"
 
-    if [ -z "$bootparam_usebackup" ]; then
-        perform_update || info "[!] Update failed"
-    fi
+    debug "Rootfs and Appfs devices mounted"
 
     if [ -n "$bootparam_factory_reset" ]; then
         perform_reset "$hdd_data_device" || info "[!] Factroy reset failed"
@@ -195,35 +126,12 @@ rootfs_run() {
 
     perform_reset "$hdd_data_reset_device" || info "[!] Factory reset failed"
 
-    root_fs_image_path="$boot_mount$efi_enapter/rootfs.img"
-    if [ -n "$bootparam_usebackup" ]; then
-        if [ -e "$root_fs_image_path.backup" ]; then
-            info "[!] Using rootfs.img.backup"
-            root_fs_image_path="$root_fs_image_path.backup"
-        else
-            info "[!] Using rootfs.img"
-        fi
-    fi
-
-    mkdir -p "$root_ro_mount"
-    wait_for_device /dev/loop0
-    mount -o loop -t squashfs "$root_fs_image_path" "$root_ro_mount"
-
-    debug "rootfs squashfs mounted"
-
     root_additional_lowerdirs=""
-    layer_images=$(find "$boot_mount/$layers_base_dir" -name "*.img")
+    layer_images=$(find "$app_ro_mount/$layers_base_dir" -name "*.img")
 
     for layer_image in $layer_images; do
         if [ -n "$layer_image" ]; then
             layer_name=$(basename "$layer_image" ".img")
-
-            if [ -n "$bootparam_usebackup" ]; then
-                if [ -e "$layer_image.backup" ]; then
-                    info "[!] Using $layer_image.backup"
-                    layer_image="$layer_image.backup"
-                fi
-            fi
 
             info "[!] Mounting $layer_name layer image"
 
@@ -250,15 +158,11 @@ rootfs_run() {
 
     debug "overlayfs mounted"
 
-    if [ -z "$bootparam_usebackup" ]; then
-        execute_patch_script "$ROOTFS_DIR"
-    fi
-
     mkdir -p "$ROOTFS_DIR/dev"
 
     # Add links to rootfs
-    mkdir -p "$ROOTFS_DIR$boot_mount" "$ROOTFS_DIR$root_ro_mount" "$ROOTFS_DIR$root_rw_mount"
-    mount --bind "$boot_mount" "$ROOTFS_DIR$boot_mount"
+    mkdir -p "$ROOTFS_DIR$app_ro_mount" "$ROOTFS_DIR$root_ro_mount" "$ROOTFS_DIR$root_rw_mount"
+    mount --bind "$app_ro_mount" "$ROOTFS_DIR$app_ro_mount"
     mount --bind "$root_ro_mount" "$ROOTFS_DIR$root_ro_mount"
     mount --bind "$root_rw_mount" "$ROOTFS_DIR$root_rw_mount"
 

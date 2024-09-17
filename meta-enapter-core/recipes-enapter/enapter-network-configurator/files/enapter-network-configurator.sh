@@ -14,7 +14,7 @@ unmount() {
 }
 
 usb_disk_mount="/mnt/enp_os_usb-network"
-network_config="$boot_mount/$network_config_file"
+network_config="$network_config_path"
 do_unmount=0
 
 if [ -L "$usb_boot_device" ] ; then

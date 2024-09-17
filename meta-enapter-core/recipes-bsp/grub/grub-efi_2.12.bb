@@ -31,6 +31,7 @@ SRC_URI += "file://cfg \
             file://sbat.csv \
             file://unicode.pf2 \
             file://0001-Commands-to-increment-and-decrement-variables.patch \
+            file://0002-Implement-search_part_label.patch \
            "
 
 # Determine the target arch for the grub modules
@@ -75,7 +76,7 @@ search search_fs_uuid search_fs_file search_label sleep smbios squash4 test true
 
     PLATFORM_SPECIFIC_MODULES="cpuid play tpm"
 
-    GRUB_MODULES="${BASIC_MODULES} ${PLATFORM_SPECIFIC_MODULES} increment"
+    GRUB_MODULES="${BASIC_MODULES} ${PLATFORM_SPECIFIC_MODULES} increment gpt"
 
     grub-mkimage -v -c ../cfg -p ${EFIDIR} -d ./grub-core/ \
                  --sbat ${WORKDIR}/sbat.csv \

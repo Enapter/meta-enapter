@@ -51,25 +51,39 @@ fi
 
 sfdisk --delete "$disk" || true
 
-recovery_part="size=2048m name=$disk_recovery_label type=L"
-boot_part="size=8192m name=$disk_boot_label type=U"
+bootloader_part="start=2m size=16m name=$disk_bootloader_label type=U"
+config_part="start=64m size=16m name=$disk_config_label type=L"
+kernel_1_part="size=128m name=$disk_kernel_1_label type=L"
+kernel_2_part="size=128m name=$disk_kernel_2_label type=L"
+root_1_part="size=1536m name=$disk_root_1_label type=L"
+root_2_part="size=1536m name=$disk_root_2_label type=L"
+app_1_part="size=4096m name=$disk_app_1_label type=L"
+app_2_part="size=4096m name=$disk_app_2_label type=L"
+backup_part="size=512m name=$disk_backup_label type=L"
 images_part="size=16384m name=$disk_images_label type=L"
 user_part="name=$disk_data_label type=L"
 
 # shellcheck disable=SC2059
-printf "$recovery_part\n $boot_part\n $images_part\n $user_part" | \
+printf "$bootloader_part\n $config_part\n $kernel_1_part\n $kernel_2_part\n $root_1_part\n $root_2_part\n $app_1_part\n $app_2_part\n $backup_part\n $images_part\n $user_part" | \
   sfdisk --label gpt --force "$disk" -w always -W always
 
 udevadm trigger --action=add
 udevadm settle || sleep 3
 
-create_fs "$disk_data_label" || die "User fs creation failed"
+# do not need to format bootloader partition
+# create_vfat_fs "$disk_bootloader_label" || die "Bootloader FS creation failed"
+create_fs "$disk_config_label" || die "Configuration FS creation failed"
+create_fs "$disk_kernel_1_label" || die "Kernel 1 FS creation failed"
+create_fs "$disk_kernel_2_label" || die "Kernel 2 FS creation failed"
+create_fs "$disk_root_1_label" || die "Root 1 FS creation failed"
+create_fs "$disk_root_2_label" || die "Root 2 FS creation failed"
+create_fs "$disk_app_1_label" || die "Application 1 FS creation failed"
+create_fs "$disk_app_2_label" || die "Application 2 FS creation failed"
+create_fs "$disk_backup_label" || die "Backup FS creation failed"
+create_fs "$disk_images_label" || die "Images FS creation failed"
+create_fs "$disk_data_label" || die "User FS creation failed"
+
 sleep 1
-create_fs "$disk_recovery_label" || die "Recovery fs creation failed"
-sleep 1
-create_fs "$disk_images_label" || die "Images fs creation failed"
-sleep 1
-create_vfat_fs "$disk_boot_label" || die "Boot fs creation failed"
 
 ensure_sync
 

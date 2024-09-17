@@ -1,11 +1,6 @@
 #!/bin/bash
-# SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
+# SPDX-FileCopyrightText: 2024 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
-
-# - Mount disk or temp FS to /user (for enapter's data)
-# - Mount disk to /recovery (for enapter's recovery data)
-# - Mount disk or create symlink for /export (for enapter's export data)
-# - Mount disk or create a directory for /user/images (for user images data)
 
 set -e
 
@@ -14,36 +9,54 @@ set -e
 disk_opts="data=ordered,barrier=1,rw,nosuid,nodev,relatime"
 ro_disk_opts="defaults,ro,nodev,nosuid"
 
-# if we have userspace disk (have a partition with user fs label) then we are in read/write mode
-# else we are using temp filesystem instead of real disks
-if [ -b "$hdd_data_device" ]; then
-  rw_mode="yes"
-  user_disk_type="auto"
-else
-  rw_mode=""
-  hdd_data_device='tmpfs'
-  user_disk_type='tmpfs'
-fi
-
+rw_mode=""
 status=0
 
-fsck.ext4 -pf "$hdd_data_device" || true
-fsck.ext4 -nf "$hdd_data_device" || { status=$?; true; }
-if [ $status -ne 0 ]; then
-  echo "ERROR (fsck): $hdd_data_device seems to be corrupted, consider recovery operation"
+test -d "$config_mount" || mkdir -p "$config_mount"
+
+if [ -b "$hdd_config_device" ]; then
+  mount "$hdd_config_device" -o "$disk_opts" "$config_mount" || { status=$?; true; }
+  if [ $status -ne 0 ]; then
+    echo "ERROR (fsck): failed to mount $config_mount, trying fsck -y ..."
+    fsck.ext4 -yf "$hdd_config_device" || { status=$?; true; }
+    if [ $status -ne 0 ]; then
+      echo "ERROR (fsck): fsck -y failed, consider recovery operation"
+    fi
+    mount "$hdd_config_device" -o "$disk_opts" "$config_mount"
+  fi
 fi
 
-# create mountpoint if not exists
+if [[ ! -f "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
+  # TODO: after install we should copy this file to persisted HDD partition
+  cp "$usb_grubenv_path" "$grubenv_path"
+fi
+
+if [[ ! -f "$network_config_path" && -f "$usb_network_config_path" ]]; then
+  ln -s "$usb_network_config_path" "$network_config_path"
+fi
+
+# if we have userspace disk (have a partition with user fs label) then we are in read/write mode
+# else we are using temp filesystem instead of real disks
 test -d "$user_fs_mount" || mkdir -p "$user_fs_mount"
 
-mount "$hdd_data_device" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mount" || { status=$?; true; }
-if [ $status -ne 0 ]; then
-  echo "ERROR (fsck): failed to mount $hdd_data_device, trying fsck -y ..."
-  fsck.ext4 -yf "$hdd_data_device" || { status=$?; true; }
+if [ -b "$hdd_data_device" ]; then
+  rw_mode="yes"
+
+  fsck.ext4 -pf "$hdd_data_device" || true
+  fsck.ext4 -nf "$hdd_data_device" || { status=$?; true; }
   if [ $status -ne 0 ]; then
-    echo "ERROR (fsck): fsck -y failed, consider recovery operation"
+    echo "ERROR (fsck): $hdd_data_device seems to be corrupted, consider recovery operation"
   fi
-  mount "$hdd_data_device" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mount"
+
+  mount "$hdd_data_device" -o "$disk_opts" "$user_fs_mount" || { status=$?; true; }
+  if [ $status -ne 0 ]; then
+    echo "ERROR (fsck): failed to mount $hdd_data_device, trying fsck -y ..."
+    fsck.ext4 -yf "$hdd_data_device" || { status=$?; true; }
+    if [ $status -ne 0 ]; then
+      echo "ERROR (fsck): fsck -y failed, consider recovery operation"
+    fi
+    mount "$hdd_data_device" -o "$disk_opts" "$user_fs_mount"
+  fi
 fi
 
 # create userspace directories structure
@@ -78,11 +91,11 @@ if [ -n "$rw_mode" ]; then
   # if we are in read/write mode then create special file
   touch "$user_fs_mount$etc_enapter/$rwfs_file"
 
-  # if we have recovery disk (have a partition with enp-recovery label) then we mount it
-  if [ -b "$hdd_recovery_device" ]; then
-    test -d "$recovery_mount" || mkdir -p "$recovery_mount"
+  # if we have backup disk (have a partition with enp-backup label) then we mount it
+  if [ -b "$hdd_backup_device" ]; then
+    test -d "$backup_mount" || mkdir -p "$backup_mount"
 
-    mount "$hdd_recovery_device" -t "auto" -o "$ro_disk_opts" "$recovery_mount"
+    mount "$hdd_backup_device" -t "auto" -o "$ro_disk_opts" "$backup_mount"
   fi
 
   # if we have export data disk (have a partition with enp-export label) then we mount it

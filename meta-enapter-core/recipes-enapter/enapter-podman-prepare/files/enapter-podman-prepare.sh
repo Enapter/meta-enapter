@@ -4,11 +4,10 @@
 
 set -o errexit
 
-podman_storage_config="/etc/containers/storage.conf"
-layers_dir="/layers"
+. /usr/share/scripts/enapter-functions
 
-if [[ -f "$podman_storage_config" && -d "$layers_dir" ]]; then
-  find "$layers_dir" -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d '' l; do
+if [[ -f "$podman_storage_config" && -d "$layers_ro_mount" ]]; then
+  find "$layers_ro_mount" -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d '' l; do
     if [[ -f "$l/images/overlay-images/images.lock" ]]; then
       sed -i "/# \\\$ADDITIONALIMAGESTORES\\\$/a \\ \\ ,'$l/images'" "$podman_storage_config"
     fi

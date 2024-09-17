@@ -1,0 +1,1 @@
+SUBSYSTEM=="block", KERNEL!="*part*", ENV{DEVTYPE}=="disk", ACTION=="add", RUN+="/usr/bin/enapter-link-data-disk %k"
