@@ -8,7 +8,7 @@ set -o errexit
 
 if [[ -f "$podman_storage_config" && -d "$layers_ro_mount" ]]; then
   find "$layers_ro_mount" -maxdepth 1 -mindepth 1 -type d -print0 | while IFS= read -r -d '' l; do
-    if [[ -f "$l/images/overlay-images/images.lock" ]]; then
+    if [[ -f "$l/images$overlay_images_lock" ]]; then
       sed -i "/# \\\$ADDITIONALIMAGESTORES\\\$/a \\ \\ ,'$l/images'" "$podman_storage_config"
     fi
   done

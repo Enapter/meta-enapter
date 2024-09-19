@@ -85,3 +85,11 @@ docker_compose_monit_file=/etc/monit.d/docker-compose
 monit_bin=/usr/bin/monit
 skopeo_bin=/usr/sbin/skopeo
 docker_compose_images_cache_dir="/user/etc/docker-compose/.images-cache"
+
+swapfile="$user_fs_mount/swapfile"
+
+var_log_dir="/var/log"
+user_var_log_dir="$user_fs_mount$var_log_dir"
+
+nm_system_connections_dir="/etc/NetworkManager/system-connections"
+user_nm_system_connections_dir="$user_fs_mount/etc/enapter/nm-system-connections"

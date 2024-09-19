@@ -2,9 +2,9 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
-set -e
+. /usr/share/scripts/enapter-functions
 
-readonly swapfile=/user/swapfile
+set -e
 
 test -f "$swapfile" || {
   touch "$swapfile"
