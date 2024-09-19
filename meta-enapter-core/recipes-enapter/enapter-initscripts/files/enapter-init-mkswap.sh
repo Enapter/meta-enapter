@@ -13,9 +13,9 @@ test -f "$swapfile" || {
     exit 0
   }
 
-  dd if=/dev/zero of=$swapfile count=4096 bs=1M >/dev/null 2>&1
-  chmod 600 $swapfile
-  mkswap $swapfile >/dev/null 2>&1
+  dd if=/dev/zero of="$swapfile" count=4096 bs=1M >/dev/null 2>&1
+  chmod 600 "$swapfile"
+  mkswap "$swapfile" >/dev/null 2>&1
 }
 
 if free | awk '/^Swap:/ {exit $2}'; then

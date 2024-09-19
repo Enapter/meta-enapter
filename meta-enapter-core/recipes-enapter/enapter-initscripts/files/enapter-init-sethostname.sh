@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
-set -eo pipefail
+set -eo
 
 new_hostname="enapter-gateway.local"
 

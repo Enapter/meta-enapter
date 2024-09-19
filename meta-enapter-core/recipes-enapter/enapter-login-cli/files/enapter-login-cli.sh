@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2024 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
-function show_help {
+show_help() {
     echo 'Available commands:'
     echo '  ip       Display the Gateway IP address'
     echo '  login    Login into the Gateway command line (expert mode)'
@@ -12,14 +12,14 @@ function show_help {
     echo
 }
 
-function print_os_version {
+print_os_version() {
     echo ""
     name=$(grep '^NAME=' /etc/os-release | sed 's/^NAME=//; s/"//g')
     version=$(grep '^VERSION_ID=' /etc/os-release | sed 's/^VERSION_ID=//; s/"//g')
     echo "$name $version"
 }
 
-function print_welcome_message {
+print_welcome_message() {
 echo "
 Welcome to Enapter Gateway!
 
@@ -37,7 +37,7 @@ print_os_version
 print_welcome_message
 show_help
 
-trap '' SIGINT
+trap '' INT
 
 while true; do
     line=$(/usr/bin/rlwrap --no-warnings -S '$ ' -o cat)

@@ -50,7 +50,7 @@ update() {
     info "Update file OK"
 
     while true; do
-      read -p "Are you sure you want to proceed with Enapter Linux update? (y/n) " yn
+      read -r -p "Are you sure you want to proceed with Enapter Linux update? (y/n) " yn
 
       case $yn in 
         [yY] ) info "Ok, we will proceed";

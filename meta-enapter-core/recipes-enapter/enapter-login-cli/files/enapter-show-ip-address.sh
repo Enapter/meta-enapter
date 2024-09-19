@@ -12,4 +12,4 @@ if [[ -z "$default_interface" ]]; then
   echo "  3. If you are using a WiFi connection, please check settings and ensure the WiFi signal level is sufficient."
   exit 1
 fi
-/sbin/ip address show dev $default_interface | sed -n 's/^.*inet \([0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+\).*$/\1/p'
+/sbin/ip address show dev "$default_interface" | sed -n 's/^.*inet \([0-9]\+.[0-9]\+.[0-9]\+.[0-9]\+\).*$/\1/p'

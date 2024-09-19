@@ -5,7 +5,7 @@
 . /usr/share/scripts/enapter-functions
 
 while true; do
-  read -p "Are you sure you want to perform a reboot? (y/n) " yn
+  read -r -p "Are you sure you want to perform a reboot? (y/n) " yn
 
   case $yn in
     [yY] ) echo "Ok.";
