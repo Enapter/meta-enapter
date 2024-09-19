@@ -4,10 +4,8 @@
 
 # no errexit, because we should cleanup before exiting
 # set -o errexit
-readonly podman_rw_storage=/user/var/lib/containers/storage
-readonly podman_user_ro_storage=/user/images
-readonly docker_compose_images_dir="/user/etc/docker-compose/images"
-readonly docker_compose_images_cache_dir="/user/etc/docker-compose/.images-cache"
+
+. /usr/share/scripts/enapter-functions
 
 need_remount_ro=0
 
@@ -20,8 +18,8 @@ function load_images() {
     if [[ -n "$f" ]]; then
       echo "Loading image from file $f ..."
       # check if storage is not writable
-      if [ ! -w "$podman_user_ro_storage/overlay-images" ]; then
-        mount -o remount,rw "$podman_user_ro_storage"
+      if [ ! -w "$images_mount$overlay_images_mount" ]; then
+        mount -o remount,rw "$images_mount"
         need_remount_ro=1
       fi
 
@@ -32,7 +30,7 @@ function load_images() {
       if [[ -n "$tags" ]]; then
         while IFS= read -r tag; do
           echo "Importing tag: $tag"
-          /usr/sbin/skopeo copy "docker-archive:$f" "containers-storage:[overlay@$podman_user_ro_storage]$tag"
+          $skopeo_bin copy "docker-archive:$f" "containers-storage:[overlay@$images_mount]$tag"
         done <<< "$tags"
       else
         echo "$f image has no associated tags, ignoring..."
@@ -43,11 +41,11 @@ function load_images() {
   done <<< "$files"
 }
 
-load_images "$docker_compose_images_dir"
+load_images "$user_fs_mount/$docker_compose_images_dir"
 load_images "$docker_compose_images_cache_dir"
 
 if [[ "$need_remount_ro" -eq 1 ]]; then
-  mount -o remount,ro "$podman_user_ro_storage"
+  mount -o remount,ro "$images_mount"
 fi
 
 if [ -x /user/bin/enapter-docker-compose-pre ]; then

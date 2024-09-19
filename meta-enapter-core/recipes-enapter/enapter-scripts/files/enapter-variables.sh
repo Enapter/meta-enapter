@@ -36,6 +36,7 @@ root_mount="/"
 overlay_images_mount="/overlay-images"
 overlay_layers_mount="/overlay-layers"
 overlay_images_lock="$overlay_images_mount/images.lock"
+overlay_images_config="$overlay_images_mount/images.json"
 overlay_layers_lock="$overlay_layers_mount/layers.lock"
 enapter_superuser_password_env_file="enapter-superuser-password.env"
 etc_enapter="/etc/enapter"
@@ -78,3 +79,9 @@ docker_compose_images_dir="$docker_compose_dir/images"
 docker_compose_file="$docker_compose_dir/docker-compose.yml"
 docker_compose_images_readme_file="$docker_compose_images_dir/readme.txt"
 podman_storage_config="/etc/containers/storage.conf"
+
+podman_rw_storage=/user/var/lib/containers/storage
+docker_compose_monit_file=/etc/monit.d/docker-compose
+monit_bin=/usr/bin/monit
+skopeo_bin=/usr/sbin/skopeo
+docker_compose_images_cache_dir="/user/etc/docker-compose/.images-cache"
