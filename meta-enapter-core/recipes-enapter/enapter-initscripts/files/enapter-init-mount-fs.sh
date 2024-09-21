@@ -27,11 +27,11 @@ if [ -b "$hdd_config_device" ]; then
 fi
 
 if [[ ! -f "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
-  # TODO: after install we should copy this file to persisted HDD partition
   cp "$usb_grubenv_path" "$grubenv_path"
 fi
 
 if [[ ! -f "$network_config_path" && -f "$usb_network_config_path" ]]; then
+  # TODO: after install we should copy this file to persisted HDD partition
   ln -s "$usb_network_config_path" "$network_config_path"
 fi
 

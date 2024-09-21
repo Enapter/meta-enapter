@@ -66,6 +66,7 @@ hdd_config_device="/dev/disk/by-label/$disk_config_label"
 grubenv_file="grubenv"
 usb_grubenv_path="$boot_mount/EFI/BOOT/$grubenv_file"
 grubenv_path="$config_mount/$grubenv_file"
+grub_editenv="/usr/bin/grub-editenv"
 
 network_config_file="network.yaml"
 usb_network_config_path="$boot_mount/$network_config_file"

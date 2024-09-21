@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-FileCopyrightText: 2024 Enapter <developers@enapter.com>
+# SPDX-License-Identifier: Apache-2.0
 
 . /usr/share/scripts/enapter-variables
 

@@ -34,37 +34,49 @@ fi
 set common_params="panic=20 ${systemd_bootargs}"
 export common_params
 
+# if all retries are 0 then reset retries to 1
+if [ "$A_TRY" -eq 0 -a "$B_TRY" -eq 0 ]; then
+  A_TRY=1
+  B_TRY=1
+fi
+
+set DISPLAY_A_TRY=A_TRY
+set DISPLAY_B_TRY=B_TRY
+
 # select bootable slot
 for SLOT in $ORDER; do
   if [ "$SLOT" == "A" ]; then
+    if [ "$A_TRY" -eq 0 ]; then
+      A_OK=0
+    fi
+    if [ "$A_TRY" -ge 0 ]; then
+      decrement A_TRY
+    fi
     INDEX=0
     OK=$A_OK
-    TRY=$A_TRY
-    A_TRY=1
   fi
   if [ "$SLOT" == "B" ]; then
+    if [ "$B_TRY" -eq 0 ]; then
+      B_OK=0
+    fi
+    if [ "$B_TRY" -ge 0 ]; then
+      decrement B_TRY
+    fi
     INDEX=1
     OK=$B_OK
-    TRY=$B_TRY
-    B_TRY=1
   fi
-  if [ "$OK" -eq 1 -a "$TRY" -eq 0 ]; then
+  if [ "$OK" -eq 1 ]; then
       default=$INDEX
+      if [ "$default" -eq 0 ]; then
+        fallback=1
+      else
+        fallback=0
+      fi
       break
   fi
 done
 
-# reset booted flags
-if [ "$default" -eq 0 ]; then
-  if [ "$A_OK" -eq 1 -a "$A_TRY" -eq 1 ]; then
-    A_TRY=0
-  fi
-  if [ "$B_OK" -eq 1 -a "$B_TRY" -eq 1 ]; then
-    B_TRY=0
-  fi
-fi
-
-save_env --file "$env_path" A_TRY A_OK B_TRY B_OK ORDER
+save_env --file "$env_path" A_TRY B_TRY enapter_systemd_machine_id
 
 if [ "$default" -eq 0 ]; then
   set active_kernel_label="enp-kernel-a"
@@ -87,7 +99,7 @@ export active_slot_kernel_disk
 # Menu entries         #
 ########################
 
-menuentry "Enapter Linux Slot A (OK: $A_OK, TRY: $A_TRY)" {
+menuentry "Enapter Linux Slot A (OK: $A_OK, TRY: $DISPLAY_A_TRY)" {
 search --set=kernel_disk --part-label enp-kernel-a
 
 echo 'Loading Linux Kernel ...'
@@ -96,7 +108,7 @@ echo 'Loading initial ramdisk ...'
 initrd ($kernel_disk)/initrd
 }
 
-menuentry "Enapter Linux Slot B (OK: $B_OK, TRY: $B_TRY)" {
+menuentry "Enapter Linux Slot B (OK: $B_OK, TRY: $DISPLAY_B_TRY)" {
 search --set=kernel_disk --part-label enp-kernel-b
 
 echo 'Loading Linux Kernel ...'
