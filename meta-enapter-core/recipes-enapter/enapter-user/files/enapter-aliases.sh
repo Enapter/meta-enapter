@@ -19,8 +19,8 @@ alias update-enapter-linux="sudo enapter-linux-update"
 alias show-ip-address="enapter-show-ip-address"
 alias factory-reset="sudo enapter-perform-factory-reset"
 alias ping="sudo ping"
-alias set-data-disk="enapter-set-userspace-disk"
-alias set-enapter-password="enapter-set-password"
+alias set-data-disk="sudo enapter-set-userspace-disk"
+alias set-enapter-password="sudo enapter-set-password"
 
 enapter-help() {
     echo "  Useful commands:"
