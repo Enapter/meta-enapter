@@ -94,3 +94,5 @@ user_var_log_dir="$user_fs_mount$var_log_dir"
 
 nm_system_connections_dir="/etc/NetworkManager/system-connections"
 user_nm_system_connections_dir="$user_fs_mount/etc/enapter/nm-system-connections"
+
+install_bundle_name="install.raucb"

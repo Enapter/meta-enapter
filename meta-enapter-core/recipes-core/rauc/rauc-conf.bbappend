@@ -6,6 +6,8 @@ SRC_URI += "\
             file://enapter-custom-grub-integration.sh \
            "
 
+RDEPENDS:${PN} += "bash"
+
 do_install:append() {
     install -d ${D}/${bindir}
     install -m 0755 ${WORKDIR}/enapter-link-data-disk.sh ${D}${bindir}/enapter-link-data-disk
