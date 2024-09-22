@@ -40,8 +40,8 @@ if [ "$A_TRY" -eq 0 -a "$B_TRY" -eq 0 ]; then
   B_TRY=1
 fi
 
-set DISPLAY_A_TRY=A_TRY
-set DISPLAY_B_TRY=B_TRY
+set DISPLAY_A_TRY=$A_TRY
+set DISPLAY_B_TRY=$B_TRY
 
 # select bootable slot
 for SLOT in $ORDER; do

@@ -31,17 +31,34 @@ install() {
     info "Enapter Linux has been successfully installed on the HDD. Please remove the installation media (USB stick) and reboot the PC."
 }
 
+LONGOPTS=yes
+OPTIONS=y
+
+# -temporarily store output to be able to check for errors
+# -activate quoting/enhanced mode (e.g. by writing out "--options")
+# -pass arguments only via   -- "$@"   to separate them correctly
+# -if getopt fails, it complains itself to stdout
+PARSED=$(getopt --options=$OPTIONS --longoptions=$LONGOPTS --name "$0" -- "$@") || exit 2
+# read getopt’s output this way to handle the quoting right:
+eval set -- "$PARSED"
+
 yes=0
 
-while getopts "y" opt; do
-  case "$opt" in
-    y)
-      yes=1
-      ;;
-    ?)
-      exit 1
-      ;;
-  esac
+while true; do
+    case "$1" in
+        -y|--yes)
+            yes=1
+            shift
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Programming error"
+            exit 3
+            ;;
+    esac
 done
 
 install "$yes"

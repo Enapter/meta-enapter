@@ -21,32 +21,12 @@ create_fs() {
     return 1
 }
 
-create_vfat_fs() {
-    local label=$1
-    local part="/dev/disk/by-partlabel/$label"
-
-    for f in {1..5}; do
-        mkfs -t vfat -F 32 -n "$label" "$part" && return 0 || true
-        echo >&2 "$part mkfs failed, looks mounted (attemp $f)"
-        sleep 2
-        umount "$part" || true
-    done
-
-    echo >&2 "$part mkfs failed, retries exausted"
-    return 1
-}
-
-die () {
-    echo >&2 "$@"
-    exit 1
-}
-
-[ "$#" -eq 1 ] || die "1 argument required"
+[ "$#" -eq 1 ] || fatal "1 argument required"
 
 disk="$1"
 
 if [ ! -b "$disk" ]; then
-  die "Device with name '$disk' does not exists"
+  fatal "Device with name '$disk' does not exists"
 fi
 
 sfdisk --delete "$disk" || true
@@ -71,17 +51,17 @@ udevadm trigger --action=add
 udevadm settle || sleep 3
 
 # do not need to format bootloader partition
-# create_vfat_fs "$disk_bootloader_label" || die "Bootloader FS creation failed"
-create_fs "$disk_config_label" || die "Configuration FS creation failed"
-create_fs "$disk_kernel_1_label" || die "Kernel 1 FS creation failed"
-create_fs "$disk_kernel_2_label" || die "Kernel 2 FS creation failed"
-create_fs "$disk_root_1_label" || die "Root 1 FS creation failed"
-create_fs "$disk_root_2_label" || die "Root 2 FS creation failed"
-create_fs "$disk_app_1_label" || die "Application 1 FS creation failed"
-create_fs "$disk_app_2_label" || die "Application 2 FS creation failed"
-create_fs "$disk_backup_label" || die "Backup FS creation failed"
-create_fs "$disk_images_label" || die "Images FS creation failed"
-create_fs "$disk_data_label" || die "User FS creation failed"
+# create_vfat_fs "$disk_bootloader_label" || fatal "Bootloader FS creation failed"
+create_fs "$disk_config_label" || fatal "Configuration FS creation failed"
+create_fs "$disk_kernel_1_label" || fatal "Kernel 1 FS creation failed"
+create_fs "$disk_kernel_2_label" || fatal "Kernel 2 FS creation failed"
+create_fs "$disk_root_1_label" || fatal "Root 1 FS creation failed"
+create_fs "$disk_root_2_label" || fatal "Root 2 FS creation failed"
+create_fs "$disk_app_1_label" || fatal "Application 1 FS creation failed"
+create_fs "$disk_app_2_label" || fatal "Application 2 FS creation failed"
+create_fs "$disk_backup_label" || fatal "Backup FS creation failed"
+create_fs "$disk_images_label" || fatal "Images FS creation failed"
+create_fs "$disk_data_label" || fatal "User FS creation failed"
 
 sleep 1
 
