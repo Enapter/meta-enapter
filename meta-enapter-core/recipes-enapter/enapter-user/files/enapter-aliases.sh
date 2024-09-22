@@ -21,6 +21,7 @@ alias factory-reset="sudo enapter-perform-factory-reset"
 alias ping="sudo ping"
 alias set-data-disk="sudo enapter-set-userspace-disk"
 alias set-enapter-password="sudo enapter-set-password"
+alias list-disks="sudo lsblk -o NAME,PATH,SIZE,MODEL,MOUNTPOINTS,PARTLABEL"
 
 enapter-help() {
     echo "  Useful commands:"
@@ -28,6 +29,7 @@ enapter-help() {
     echo "  enapter-help             Display this help message"
     echo "  factory-reset            Clean all user data"
     echo "  install-enapter-linux    Perform on-disk installation"
+    echo "  list-disks               Show system disks information"
     echo "  nmtui                    Network configuration"
     echo "  ping                     Execute ping command"
     echo "  set-data-disk            Set disk for storing user data"
