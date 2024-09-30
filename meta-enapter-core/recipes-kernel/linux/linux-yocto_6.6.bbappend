@@ -11,7 +11,7 @@ SRC_URI += "\
     file://cdc_mbim.cfg \
     file://i2c_smbus.cfg \
     file://module_sig_format.cfg \
-    file://marvell_alaska_phy.cfg \
+    file://eth.cfg \
     file://wifi.cfg \
     "
 
@@ -35,7 +35,7 @@ KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
                          i2c_smbus.cfg \
                          module_sig_format.cfg \
                          wifi.cfg \
-                         marvell_alaska_phy.cfg \
+                         eth.cfg \
                         "
 
 SIGNING_DIR ?= "${B}"
