@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0 AND MIT
-FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += "\
     file://squashfs.cfg \
@@ -46,9 +46,9 @@ SIGN_BEFORE ?= "do_deploy"
 # uefi-sign.bbclass defined in meta-intel layer
 inherit uefi-sign
 
-SRCREV_machine = "fb2635ac69abac0060cc2be2873dc4f524f12e66"
-SRCREV_meta = "d26f4f3307216e06ee0b74fa9b57b17fba72a988"
-LINUX_VERSION = "6.1.62"
+SRCREV_machine = "1e7afaadc8d424c53f064911420b07404fa166c5"
+SRCREV_meta = "5cefbe3e2770576771fe59b611d3b5fcf5860a1f"
+LINUX_VERSION = "6.6.62"
 LINUX_VERSION_EXTENSION = "-enapter"
 
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'modsign', 'kernel-modsign', '', d)}
