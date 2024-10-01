@@ -65,12 +65,14 @@ hdd_config_device="/dev/disk/by-label/$disk_config_label"
 
 grubenv_file="grubenv"
 usb_grubenv_path="$boot_mount/EFI/BOOT/$grubenv_file"
-grubenv_path="$config_mount/$grubenv_file"
+# for a 2.5.x compatibility grubenv_path will be the same as usb_urubenv_path
+grubenv_path="$usb_grubenv_path"
 grub_editenv="/usr/bin/grub-editenv"
 
 network_config_file="network.yaml"
 usb_network_config_path="$boot_mount/$network_config_file"
-network_config_path="$config_mount/$network_config_file"
+# for a 2.5.x compatibility network_config_path will be the same as usb_network_config_path
+network_config_path="$usb_network_config_path"
 
 netplan_config_dir="/etc/netplan"
 netplan_bin="/usr/sbin/netplan"
