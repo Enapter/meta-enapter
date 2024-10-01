@@ -26,13 +26,17 @@ if [ -b "$hdd_config_device" ]; then
   fi
 fi
 
-if [[ ! -f "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
-  cp "$usb_grubenv_path" "$grubenv_path"
+if [[ "$grubenv_path" != "$usb_grubenv_path" ]]; then
+  if [[ ! -L "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
+    cp "$usb_grubenv_path" "$grubenv_path"
+  fi
 fi
 
-if [[ ! -f "$network_config_path" && -f "$usb_network_config_path" ]]; then
-  # TODO: after install we should copy this file to persisted HDD partition
-  ln -s "$usb_network_config_path" "$network_config_path"
+if [[ "$network_config_path" != "$usb_network_config_path" ]]; then
+  if [[ ! -L "$network_config_path" && -f "$usb_network_config_path" ]]; then
+    # TODO: after install we should copy this file to persisted HDD partition
+    ln -s "$usb_network_config_path" "$network_config_path"
+  fi
 fi
 
 # if we have userspace disk (have a partition with user fs label) then we are in read/write mode
