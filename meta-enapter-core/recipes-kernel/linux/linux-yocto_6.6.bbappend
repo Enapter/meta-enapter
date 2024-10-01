@@ -43,9 +43,9 @@ SIGN_BEFORE ?= "do_deploy"
 # uefi-sign.bbclass defined in meta-intel layer
 inherit uefi-sign
 
-SRCREV_machine = "037d55485563d2750f9d64f8ad6c499b15abf518"
-SRCREV_meta = "694e046ff4449d031f51c2e85f5dff035f5fa9e9"
-LINUX_VERSION = "6.6.47"
+SRCREV_machine = "1e7afaadc8d424c53f064911420b07404fa166c5"
+SRCREV_meta = "5cefbe3e2770576771fe59b611d3b5fcf5860a1f"
+LINUX_VERSION = "6.6.52"
 LINUX_VERSION_EXTENSION = "-enapter"
 
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'modsign', 'kernel-modsign', '', d)}
