@@ -1,12 +1,22 @@
 # SPDX-FileCopyrightText: 2024 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
-if loadfont ($root)/EFI/BOOT/unicode.pf2 ; then
-  insmod all_video
-  insmod gfxterm
-  terminal_output gfxterm
-fi
+# Attempt to load video support for various hardware
+# insmod all_video
 
+# Use graphical terminal if needed
+# insmod gfxterm
+
+# Set the graphics mode to auto-detect the best available resolution
+# set gfxmode=auto
+
+# Attempt to use gfxterm first
+# terminal_output gfxterm
+
+# Add console as an additional output
+# terminal_output --append console
+
+# Set menu colors for readability
 set menu_color_normal=white/black
 set menu_color_highlight=black/light-gray
 
@@ -29,6 +39,8 @@ load_env --file "$env_path"
 # Check if enapter_systemd_machine_id is set
 if [ -n "${enapter_systemd_machine_id}" ]; then
   set systemd_bootargs="systemd.machine_id=${enapter_systemd_machine_id}"
+else
+  set systemd_bootargs="systemd.condition-first-boot=true"
 fi
 
 set common_params="panic=20 ${systemd_bootargs}"
@@ -92,6 +104,7 @@ fi
 
 set active_slot_params="rauc.slot=${active_slot} root=PARTLABEL=${active_rootfs_label} app=PARTLABEL=${active_appfs_label}"
 export active_slot_params
+
 search --set=active_slot_kernel_disk --part-label $active_kernel_label
 export active_slot_kernel_disk
 
