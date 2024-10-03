@@ -54,7 +54,9 @@ execute_patch_script() {
     local_root_mount="$1"
 
     if [ -x "$boot_mount/$rootfs_patch_script" ]; then
+        info "Patching rootfs"
         "$boot_mount/$rootfs_patch_script" "$local_root_mount" "$boot_mount" || true
+        sleep 1
     fi
 }
 
@@ -62,6 +64,9 @@ perform_reset() {
     disk_to_reset="$1"
 
     if [ -L "$disk_to_reset" ] ; then
+      info "Performing factory reset"
+      sleep 1
+
       part="$(readlink -f "$disk_to_reset")"
 
       wipefs -f -a "$part"
@@ -78,18 +83,44 @@ perform_reset() {
       done
 
       echo >&2 "$part mkfs failed, retries exausted"
+      sleep 1
       return 1
     fi
+}
+
+erase_data_disk() {
+    for disk in $(lsblk -dn -o PATH); do
+        debug "Checking disk: $disk"
+
+        data_labels="$disk_data_label\|$disk_data_reset_label\|$disk_legacy_data_label\|$disk_legacy_data_reset_label"
+
+        # Check for partition with the specific label on this disk
+        if lsblk "$disk" -n -o PARTLABEL | grep -q "$data_labels"; then
+            info "Disk $disk has a partition with data label"
+            sleep 1
+
+            info "Deleteting all partitions"
+            sfdisk --delete "$disk"
+            info "Partitions deleted"
+            sleep 1
+        fi
+    done
+    sleep 1
 }
 
 perform_password_reset() {
     data_disk_mount="/mnt/data_disk"
 
     if [ -e "$hdd_data_device" ] ; then
+        info "Performing password reset"
+
         mkdir -p "$data_disk_mount"
         mount "$hdd_data_device" "$data_disk_mount" || return 1
 
         rm "$data_disk_mount$etc_enapter/$enapter_superuser_password_env_file" || return 1
+
+        info "Password reset done"
+        sleep 1
     fi
 }
 
@@ -130,6 +161,7 @@ perform_update() {
 
         mv -v -f "$update_file" "$base_file"
         ensure_sync
+        sleep 1
     done
 
     if [ "$disk_in_rw_mode" -ne 0 ]; then
@@ -140,14 +172,17 @@ perform_update() {
 
         mount -o remount,ro "$boot_mount" || {
             info "ERROR: remount boot partition to RO mode failed, rebooting"
+            sleep 1
             reboot -f
         }
 
         if [ "$requires_reboot" -ne 0 ]; then
             info "Some of updated files require reboot, rebooting"
+            sleep 1
             reboot -f
         else
             info "No reboot was requested, continuing"
+            sleep 1
         fi
     fi
 }
@@ -187,6 +222,10 @@ rootfs_run() {
 
     if [ -n "$bootparam_factory_reset" ]; then
         perform_reset "$hdd_data_device" || info "[!] Factroy reset failed"
+    fi
+
+    if [ -n "$bootparam_erase_data_disk" ]; then
+        erase_data_disk "$hdd_data_device" || info "[!] Erasing data disk failed"
     fi
 
     if [ -n "$bootparam_password_reset" ]; then

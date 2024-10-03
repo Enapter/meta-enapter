@@ -18,8 +18,8 @@ update() {
     update_file="$1"
     opts="$2"
 
-    if [[ ! -L "$hdd_boot_device" ]]; then
-      fatal "Partition with label $disk_boot_label (installation disk) not found, please do Enapter Gateway setup first."
+    if [[ ! -L "$legacy_hdd_boot_device" ]]; then
+      fatal "Partition with label $disk_legacy_boot_label (installation disk) not found, please do Enapter Gateway setup first."
     fi
 
     info "Unpacking update file..."
