@@ -67,15 +67,33 @@ EXTRA_OECONF += "--enable-efiemu=no"
 do_mkimage() {
     cd ${B}
 
-    # list of modules got from here https://git.launchpad.net/~ubuntu-core-dev/grub/+git/ubuntu/tree/debian/build-efi-images?h=debian/2.06-2ubuntu12
-    BASIC_MODULES="all_video boot btrfs cat chain configfile echo efifwsetup efinet ext2 fat font gettext gfxmenu
-gfxterm gfxterm_background gzio halt help hfsplus iso9660 jpeg keystatus loadenv loopback linux ls lsefi lsefimmap
-lsefisystab lssal memdisk minicmd normal ntfs part_apple part_msdos part_gpt password_pbkdf2 png probe reboot regexp
-search search_fs_uuid search_fs_file search_label sleep smbios squash4 test true video xfs zfs zfscrypt zfsinfo"
-
-    PLATFORM_SPECIFIC_MODULES="cpuid play tpm"
-
-    GRUB_MODULES="${BASIC_MODULES} ${PLATFORM_SPECIFIC_MODULES} increment gpt"
+    GRUB_MODULES="\
+        boot \
+        echo \
+        efi_gop \
+        ext2 \
+        fat \
+        gpt \
+        help \
+        increment \
+        linux \
+        loadenv \
+        ls \
+        normal \
+        part_gpt \
+        part_msdos \
+        probe \
+        read \
+        reboot \
+        search \
+        search_fs_file \
+        search_fs_uuid \
+        search_label \
+        search_part_label \
+        sleep \
+        test \
+        true \
+    "
 
     grub-mkimage -v -c ../cfg -p ${EFIDIR} -d ./grub-core/ \
                  --sbat ${WORKDIR}/sbat.csv \
