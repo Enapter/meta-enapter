@@ -29,7 +29,6 @@ RDEPENDS:${PN} = "bash grub-common virtual-grub-bootconf"
 
 SRC_URI += "file://cfg \
             file://sbat.csv \
-            file://unicode.pf2 \
             file://0001-Commands-to-increment-and-decrement-variables.patch \
             file://0002-Implement-search_part_label.patch \
            "
@@ -103,7 +102,6 @@ do_install() {
     install -m 644 ${WORKDIR}/git/${GRUB_IMAGE_PREFIX}${GRUB_IMAGE} ${D}${EFI_FILES_PATH}/${GRUB_IMAGE}
 
     install -d ${D}/boot/EFI/BOOT
-    install -m 0644 ${WORKDIR}/unicode.pf2 ${D}/boot/EFI/BOOT/unicode.pf2
     install -m 0644 ${WORKDIR}/grubenv ${D}/boot/EFI/BOOT/grubenv
 }
 
@@ -124,7 +122,6 @@ addtask deploy after do_install before do_build
 FILES:${PN} = "${libdir}/grub/${GRUB_TARGET}-efi \
                ${datadir}/grub \
                ${EFI_FILES_PATH}/${GRUB_IMAGE} \
-               ${EFI_FILES_PATH}/unicode.pf2 \
                ${EFI_FILES_PATH}/grubenv \
                "
 
