@@ -2,10 +2,14 @@
 # SPDX-FileCopyrightText: 2023 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
+if [ -f /usr/share/scripts/enapter-distro-variant ]; then
+    . /usr/share/scripts/enapter-distro-variant
+fi
+
 set -eo
 
-new_hostname="enapter-gateway.local"
+hostname="${DISTRO_VARIANT:-enapter}-gateway.local"
 
-echo $new_hostname > /etc/hostname
-hostnamectl set-hostname "$new_hostname"
-hostnamectl set-icon-name "enapter-gateway"
+echo $hostname > /etc/hostname
+hostnamectl set-hostname "$hostname"
+hostnamectl set-icon-name "${DISTRO_VARIANT:-enapter}-gateway"

@@ -2,6 +2,10 @@
 # SPDX-FileCopyrightText: 2024 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
+if [ -f /usr/share/scripts/enapter-distro-variant ]; then
+    . /usr/share/scripts/enapter-distro-variant
+fi
+
 show_help() {
     echo 'Available commands:'
     echo '  ip       Display the Gateway IP address'
@@ -20,7 +24,7 @@ print_os_version() {
 }
 
 print_welcome_message() {
-echo "
+    default_welcome_message="
 Welcome to Enapter Gateway!
 
 Please access the Gateway web interface:
@@ -31,6 +35,8 @@ Please access the Gateway web interface:
   and press <Enter>.
   Then type the IP address into your browser address bar and press <Enter>.
 "
+
+    echo "${gateway_welcome_message:-$default_welcome_message}"
 }
 
 print_os_version
