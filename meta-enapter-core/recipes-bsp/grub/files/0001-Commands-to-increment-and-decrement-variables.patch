@@ -3,7 +3,9 @@ From: Dmitry Myaskovskiy <dmitry@enapter.com>
 Date: Mon, 31 Jul 2023 20:27:58 +0200
 Subject: [PATCH] Commands to increment and decrement variables
 
-Upstream-Status: Unknown
+Upstream-Status: Inappropriate
+
+Signed-off-by: Dmitrii Miaskovskii <dmitry@enapter.com>
 ---
  grub-core/Makefile.core.def    |   5 ++
  grub-core/commands/increment.c | 105 +++++++++++++++++++++++++++++++++

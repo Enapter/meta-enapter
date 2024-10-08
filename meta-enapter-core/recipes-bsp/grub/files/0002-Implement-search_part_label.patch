@@ -3,7 +3,9 @@ From: Dmitry Myaskovskiy <dmitry@enapter.com>
 Date: Tue, 17 Sep 2024 23:14:05 +0200
 Subject: [PATCH] Implement search_part_label
 
-Upstream-Status: Unknown
+Upstream-Status: Inappropriate
+
+Signed-off-by: Dmitrii Miaskovskii <dmitry@enapter.com>
 ---
  grub-core/Makefile.core.def            |  10 +
  grub-core/commands/probe.c             |   2 +-
