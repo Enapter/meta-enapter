@@ -28,6 +28,8 @@ install() {
 
     rauc install "$boot_mount/$install_bundle_name"
 
+    ensure_sync
+
     info "Enapter Linux has been successfully installed on the HDD. Please remove the installation media (USB stick) and reboot the PC."
 }
 

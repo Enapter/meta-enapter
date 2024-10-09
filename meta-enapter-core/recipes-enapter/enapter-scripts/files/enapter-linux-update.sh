@@ -27,6 +27,8 @@ update() {
 
     rauc install "$update_file"
 
+    ensure_sync
+
     echo ""
     info "Enapter Linux successfully updated. Please reboot the PC."
 }
