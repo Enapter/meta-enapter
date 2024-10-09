@@ -1,22 +1,6 @@
 # SPDX-FileCopyrightText: 2024 Enapter <developers@enapter.com>
 # SPDX-License-Identifier: Apache-2.0
 
-# Attempt to load video support for various hardware
-# insmod all_video
-
-# Use graphical terminal if needed
-# insmod gfxterm
-
-# Set the graphics mode to auto-detect the best available resolution
-# set gfxmode=auto
-
-# Attempt to use gfxterm first
-# terminal_output gfxterm
-
-# Add console as an additional output
-# terminal_output --append console
-
-# Set menu colors for readability
 set menu_color_normal=white/black
 set menu_color_highlight=black/light-gray
 
@@ -25,9 +9,11 @@ set A_OK=0
 set A_TRY=0
 set B_OK=0
 set B_TRY=0
+set INDEX=""
+set OK=-1
+set default="SlotA"
+set fallback="SlotB"
 
-set default=0
-set fallback=1
 set timeout=2
 
 search --set=config_disk --part-label enp-config
@@ -64,7 +50,7 @@ for SLOT in $ORDER; do
     if [ "$A_TRY" -ge 0 ]; then
       decrement A_TRY
     fi
-    INDEX=0
+    INDEX="SlotA"
     OK=$A_OK
   fi
   if [ "$SLOT" == "B" ]; then
@@ -74,23 +60,23 @@ for SLOT in $ORDER; do
     if [ "$B_TRY" -ge 0 ]; then
       decrement B_TRY
     fi
-    INDEX=1
+    INDEX="SlotB"
     OK=$B_OK
   fi
   if [ "$OK" -eq 1 ]; then
-      default=$INDEX
-      if [ "$default" -eq 0 ]; then
-        fallback=1
+      default="$INDEX"
+      if [ "$default" == "SlotA" ]; then
+        fallback="SlotB"
       else
-        fallback=0
+        fallback="SlotA"
       fi
       break
   fi
 done
 
-save_env --file "$env_path" A_TRY B_TRY enapter_systemd_machine_id
+save_env --file "$env_path" A_OK A_TRY B_OK B_TRY
 
-if [ "$default" -eq 0 ]; then
+if [ "$default" == "SlotA" ]; then
   set active_kernel_label="enp-kernel-a"
   set active_rootfs_label="enp-root-a"
   set active_appfs_label="enp-app-a"
@@ -112,7 +98,7 @@ export active_slot_kernel_disk
 # Menu entries         #
 ########################
 
-menuentry "Enapter Linux Slot A (OK: $A_OK, TRY: $DISPLAY_A_TRY)" {
+menuentry "Enapter Linux Slot A (OK: $A_OK, TRY: $DISPLAY_A_TRY)" --id SlotA {
 search --set=kernel_disk --part-label enp-kernel-a
 
 echo 'Loading Linux Kernel ...'
@@ -121,7 +107,7 @@ echo 'Loading initial ramdisk ...'
 initrd ($kernel_disk)/initrd
 }
 
-menuentry "Enapter Linux Slot B (OK: $B_OK, TRY: $DISPLAY_B_TRY)" {
+menuentry "Enapter Linux Slot B (OK: $B_OK, TRY: $DISPLAY_B_TRY)" --id SlotB {
 search --set=kernel_disk --part-label enp-kernel-b
 
 echo 'Loading Linux Kernel ...'
