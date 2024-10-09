@@ -25,6 +25,7 @@ KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
                          features/ocicontainer/ocicontainer.scc \
                          features/i2c/i2cdbg.scc \
                          features/ima/modsign.scc \
+                         features/module-signing/force-signing.scc \
                          cfg/vmware-guest.scc \
                          squashfs.cfg \
                          can.cfg \
@@ -50,9 +51,13 @@ inherit uefi-sign
 SRCREV_machine = "1e7afaadc8d424c53f064911420b07404fa166c5"
 SRCREV_meta = "5cefbe3e2770576771fe59b611d3b5fcf5860a1f"
 LINUX_VERSION = "6.6.52"
-LINUX_VERSION_EXTENSION = "-enapter"
 
-inherit ${@bb.utils.contains('DISTRO_FEATURES', 'modsign', 'kernel-modsign', '', d)}
+# we should add distro version to kernel version to
+# ensure that the module version information is
+# sufficient to prevent loading a module into a different kernel
+LINUX_VERSION_EXTENSION = "-enapter-${DISTRO_VERSION}"
 
-MODSIGN_PRIVKEY = "${SECURE_BOOT_SIGNING_KEY}"
-MODSIGN_X509 = "${SECURE_BOOT_SIGNING_CERT}"
+inherit kernel-modsign
+
+MODSIGN_PRIVKEY = "${MODSIGN_SIGNING_KEY}"
+MODSIGN_X509 = "${MODSIGN_SIGNING_CERT}"
