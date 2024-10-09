@@ -13,6 +13,7 @@ SRC_URI += "\
     file://module_sig_format.cfg \
     file://eth.cfg \
     file://wifi.cfg \
+    file://hardening.cfg \
     "
 
 KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
@@ -37,6 +38,7 @@ KERNEL_EXTRA_FEATURES = "features/netfilter/netfilter.scc \
                          module_sig_format.cfg \
                          wifi.cfg \
                          eth.cfg \
+                         hardening.cfg \
                         "
 
 SIGNING_DIR ?= "${B}"
