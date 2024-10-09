@@ -5,7 +5,7 @@ if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi
 
-if [ "$USER" == "enapter" ]; then
+if [ "$USER" == "@@ENAPTER_USERNAME@@" ]; then
     # Print help message
     commands-help
 fi

@@ -7,8 +7,8 @@ if [ -x /usr/bin/enapter-aliases ]; then
     . /usr/bin/enapter-aliases
 fi
 
-if [ "$USER" == "enapter" ]; then
-    # Add /sbin & co to $PATH for the enapter user
+if [ "$USER" == "@@ENAPTER_USERNAME@@" ]; then
+    # Add /sbin & co to $PATH for the default user
     PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
 fi
 

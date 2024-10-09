@@ -9,6 +9,9 @@ SRC_URI = " \
           file://enapter-show-ip-address.sh \
           "
 
+ENAPTER_USERNAME ?= "enapter"
+ENAPTER_USER_PASSWD ?= "enapter"
+
 RDEPENDS:${PN} = "bash rlwrap"
 
 inherit systemd
@@ -20,6 +23,8 @@ SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 do_install() {
     install -d ${D}/${sbindir}
     install -m 0755 ${WORKDIR}/enapter-login-cli.sh ${D}${sbindir}/enapter-login-cli
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}${sbindir}/enapter-login-cli
+    sed -i -e 's|@@ENAPTER_USER_PASSWD@@|${ENAPTER_USER_PASSWD}|' ${D}${sbindir}/enapter-login-cli
 
     install -d ${D}/${bindir}
     install -m 0755 ${WORKDIR}/enapter-show-ip-address.sh ${D}${bindir}/enapter-show-ip-address

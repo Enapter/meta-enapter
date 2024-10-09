@@ -13,7 +13,7 @@ alias show-ip-address="enapter-show-ip-address"
 alias factory-reset="sudo enapter-perform-factory-reset"
 alias ping="sudo ping"
 alias set-data-disk="sudo enapter-set-userspace-disk"
-alias set-enapter-password="sudo enapter-set-password"
+alias set-user-password="sudo enapter-set-password"
 alias list-disks="sudo lsblk -o NAME,PATH,SIZE,MODEL,MOUNTPOINTS,PARTLABEL"
 
 commands-help() {
@@ -26,6 +26,6 @@ commands-help() {
     echo "  nmtui                    Network configuration"
     echo "  ping                     Execute ping command"
     echo "  set-data-disk            Set disk for storing user data"
-    echo "  set-enapter-password     Set password for enapter user"
+    echo "  set-user-password        Set password for @@ENAPTER_USERNAME@@ user"
     echo ""
 }

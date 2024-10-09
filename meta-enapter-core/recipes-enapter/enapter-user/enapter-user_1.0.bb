@@ -11,33 +11,37 @@ SRC_URI = "file://LICENSE \
 
 inherit useradd
 
+ENAPTER_USERNAME ?= "enapter"
+# default password is "enapter", can be changed and persisted via "enapter-set-password" script
+ENAPTER_USER_PASSWD_HASH ?= "\$6\$6eb82457686bad72\$FrAewCqMTY5cu/9neeZTFDJDFopeprTE7bo2Fui4b.x83uOL8Qqs4xGhFeJbyWlGbxHWOvCSOxe8pghZiUIgt1"
+
 RDEPENDS:${PN} += "bash"
 
-# default password is "enapter", can be changed and persisted via "enapter-set-password" script
-PASSWD = "\$6\$6eb82457686bad72\$FrAewCqMTY5cu/9neeZTFDJDFopeprTE7bo2Fui4b.x83uOL8Qqs4xGhFeJbyWlGbxHWOvCSOxe8pghZiUIgt1"
 USERADD_PACKAGES = "${PN}"
 USERADD_PARAM:${PN} = " \
     --uid 1000 \
-    --home /home/enapter \
+    --home /home/${ENAPTER_USERNAME} \
     --no-user-group \
     --groups sudo \
-    --password '${PASSWD}' \
+    --password '${ENAPTER_USER_PASSWD_HASH}' \
     --system --no-create-home \
     --shell /bin/bash \
-    enapter"
+    ${ENAPTER_USERNAME}"
 
 do_install() {
-    install -d ${D}/home/enapter
-    install -d ${D}/home/enapter/.vim
-    install -d ${D}/home/enapter/.vim/backup
-    install -d ${D}/home/enapter/.vim/undo
-    install -d ${D}/home/enapter/.vim/swap
+    install -d ${D}/home/${ENAPTER_USERNAME}
+    install -d ${D}/home/${ENAPTER_USERNAME}/.vim
+    install -d ${D}/home/${ENAPTER_USERNAME}/.vim/backup
+    install -d ${D}/home/${ENAPTER_USERNAME}/.vim/undo
+    install -d ${D}/home/${ENAPTER_USERNAME}/.vim/swap
 
-    install -m 0644 ${WORKDIR}/enapter_vimrc ${D}/home/enapter/.vimrc
-    install -m 0644 ${WORKDIR}/enapter_bashrc ${D}/home/enapter/.bashrc
-    install -m 0644 ${WORKDIR}/enapter_bash_profile ${D}/home/enapter/.bash_profile
+    install -m 0644 ${WORKDIR}/enapter_vimrc ${D}/home/${ENAPTER_USERNAME}/.vimrc
+    install -m 0644 ${WORKDIR}/enapter_bashrc ${D}/home/${ENAPTER_USERNAME}/.bashrc
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}/home/${ENAPTER_USERNAME}/.bashrc
+    install -m 0644 ${WORKDIR}/enapter_bash_profile ${D}/home/${ENAPTER_USERNAME}/.bash_profile
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}/home/${ENAPTER_USERNAME}/.bash_profile
 
-    chown enapter -R ${D}/home/enapter
+    chown ${ENAPTER_USERNAME} -R ${D}/home/${ENAPTER_USERNAME}
 
     install -d ${D}/root
     install -d ${D}/root/.vim
@@ -47,20 +51,23 @@ do_install() {
 
     install -m 0644 ${WORKDIR}/enapter_vimrc ${D}/root/.vimrc
     install -m 0644 ${WORKDIR}/enapter_bashrc ${D}/root/.bashrc
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}/root/.bashrc
     install -m 0644 ${WORKDIR}/enapter_bash_profile ${D}/root/.bash_profile
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}/root/.bash_profile
 
     install -d ${D}${bindir}
     install -m 0755 ${WORKDIR}/enapter-aliases.sh ${D}${bindir}/enapter-aliases
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}${bindir}/enapter-aliases
 }
 
 FILES:${PN} += " \
-    /home/enapter/.bashrc \
-    /home/enapter/.bash_profile \
-    /home/enapter/.vimrc \
-    /home/enapter/.vim \
-    /home/enapter/.vim/backup \
-    /home/enapter/.vim/undo \
-    /home/enapter/.vim/swap \
+    /home/${ENAPTER_USERNAME}/.bashrc \
+    /home/${ENAPTER_USERNAME}/.bash_profile \
+    /home/${ENAPTER_USERNAME}/.vimrc \
+    /home/${ENAPTER_USERNAME}/.vim \
+    /home/${ENAPTER_USERNAME}/.vim/backup \
+    /home/${ENAPTER_USERNAME}/.vim/undo \
+    /home/${ENAPTER_USERNAME}/.vim/swap \
     /root/.bashrc \
     /root/.bash_profile \
     /root/.vimrc \

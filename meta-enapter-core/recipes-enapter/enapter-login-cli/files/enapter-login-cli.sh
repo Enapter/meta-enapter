@@ -64,8 +64,8 @@ while true; do
     login)
         echo ""
         echo "To log in, use the following credentials:"
-        echo "Login: enapter"
-        echo "Password: [your superuser password] (default password is 'enapter')"
+        echo "Login: @@ENAPTER_USERNAME@@"
+        echo "Password: [your superuser password] (default password is '@@ENAPTER_USER_PASSWD@@')"
         echo ""
         /bin/login
         ;;

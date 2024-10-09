@@ -7,6 +7,8 @@ SRC_URI = " \
           file://${BPN}.service \
           "
 
+ENAPTER_USERNAME ?= "enapter"
+
 inherit systemd
 
 SYSTEMD_SERVICE:${PN} = "${PN}.service"
@@ -17,4 +19,5 @@ RDEPENDS:${PN} = "bash"
 do_install() {
     install -d ${D}${systemd_unitdir}/system/
     install -m 0644 ${WORKDIR}/${PN}.service ${D}${systemd_unitdir}/system
+    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}${systemd_unitdir}/system/${PN}.service
 }
