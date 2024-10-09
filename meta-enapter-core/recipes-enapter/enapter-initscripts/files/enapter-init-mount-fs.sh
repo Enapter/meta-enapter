@@ -24,18 +24,26 @@ if [ -b "$hdd_config_device" ]; then
     fi
     mount "$hdd_config_device" -o "$disk_opts" "$config_mount"
   fi
-fi
-
-if [[ "$grubenv_path" != "$usb_grubenv_path" ]]; then
-  if [[ ! -L "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
-    cp "$usb_grubenv_path" "$grubenv_path"
+  if [[ "$grubenv_path" != "$usb_grubenv_path" ]]; then
+    if [[ -L "$grubenv_path" ]]; then
+      rm -f "$grubenv_path"
+    fi
+    if [[ ! -f "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
+      cp "$usb_grubenv_path" "$grubenv_path"
+    fi
+  fi
+else
+  if [[ "$grubenv_path" != "$usb_grubenv_path" ]]; then
+    if [[ ! -L "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
+      ln -s "$usb_grubenv_path" "$grubenv_path"
+    fi
   fi
 fi
 
 if [[ "$network_config_path" != "$usb_network_config_path" ]]; then
-  if [[ ! -L "$network_config_path" && -f "$usb_network_config_path" ]]; then
-    # TODO: after install we should copy this file to persisted HDD partition
-    ln -s "$usb_network_config_path" "$network_config_path"
+  if [[ -f "$usb_network_config_path" ]]; then
+    rm -f "$network_config_path"
+    cp "$usb_network_config_path" "$network_config_path"
   fi
 fi
 

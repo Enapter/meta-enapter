@@ -59,6 +59,11 @@ do_mkimage() {
     grub-editenv ${WORKDIR}/grubenv create
 }
 
+do_install:append() {
+    install -d ${D}${EFI_FILES_PATH}
+    install -m 0644 ${WORKDIR}/grubenv ${D}${EFI_FILES_PATH}/grubenv
+}
+
 SIGNING_DIR ?= "${B}"
 SIGNING_BINARIES ?= "*.efi"
 SIGN_AFTER ?= "do_compile"
