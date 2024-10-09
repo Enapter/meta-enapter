@@ -7,5 +7,5 @@ fi
 
 if [ "$USER" == "enapter" ]; then
     # Print help message
-    enapter-help
+    commands-help
 fi
