@@ -26,6 +26,7 @@ do_mkimage() {
         boot \
         echo \
         efi_gop \
+        efifwsetup \
         ext2 \
         fat \
         gpt \
