@@ -6,13 +6,17 @@ set -o errexit
 
 . /usr/share/scripts/enapter-functions
 
+if [ -f /usr/share/scripts/enapter-distro-variant ]; then
+    . /usr/share/scripts/enapter-distro-variant
+fi
+
 update() {
     update_file="$1"
     yes="$2"
 
     if [[ $yes -ne 1 ]]; then
       while true; do
-        read -r -p "Are you sure you want to proceed with updating Enapter Linux? (y/n) " yn
+        read -r -p "Are you sure you want to proceed with updating ${DISTRO_VARIANT_COMPANY_NAME:-Enapter} Linux? (y/n) " yn
 
         case $yn in 
           [yY] ) info "Ok, we will proceed.";
@@ -30,7 +34,7 @@ update() {
     ensure_sync
 
     echo ""
-    info "Enapter Linux successfully updated. Please reboot the PC."
+    info "${DISTRO_VARIANT_COMPANY_NAME:-Enapter} Linux successfully updated. Please reboot the PC."
 }
 
 [ "$#" -eq 1 ] || fatal "1 argument required"

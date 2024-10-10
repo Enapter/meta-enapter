@@ -6,6 +6,10 @@ set -o errexit
 
 . /usr/share/scripts/enapter-functions
 
+if [ -f /usr/share/scripts/enapter-distro-variant ]; then
+    . /usr/share/scripts/enapter-distro-variant
+fi
+
 install() {
     yes="$1"
 
@@ -13,7 +17,7 @@ install() {
 
     if [[ $yes -ne 1 ]]; then
       while true; do
-        read -p "Are you sure you want to proceed with installing Enapter Linux on the HDD? (y/n) " yn
+        read -p "Are you sure you want to proceed with installing ${DISTRO_VARIANT_COMPANY_NAME:-Enapter} Linux on the HDD? (y/n) " yn
 
         case $yn in 
           [yY] ) info "Ok, we will proceed.";
@@ -30,7 +34,7 @@ install() {
 
     ensure_sync
 
-    info "Enapter Linux has been successfully installed on the HDD. Please remove the installation media (USB stick) and reboot the PC."
+    info "${DISTRO_VARIANT_COMPANY_NAME:-Enapter} Linux has been successfully installed on the HDD. Please remove the installation media (USB stick) and reboot the PC."
 }
 
 LONGOPTS=yes
