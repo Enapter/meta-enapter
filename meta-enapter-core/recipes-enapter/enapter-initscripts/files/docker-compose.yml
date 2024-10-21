@@ -15,7 +15,7 @@ version: "3"
 #      - '0.0.0.0:3000:3000'
 #    env_file: /user/etc/enapter/enapter-token.env
 #    environment:
-#      - 'TELEMETRY_API_BASE_URL=http://10.88.0.1/api/telemetry'
+#      - 'ENAPTER_API_URL=http://10.88.0.1/api'
 #    volumes:
 #      - /user/grafana-data:/var/lib/grafana
-#    image: enapter/grafana-with-telemetry-datasource-plugin
+#    image: enapter/grafana-plugins
