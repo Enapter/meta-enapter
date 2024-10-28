@@ -50,9 +50,9 @@ SIGN_BEFORE ?= "do_deploy"
 # uefi-sign.bbclass defined in meta-intel layer
 inherit uefi-sign
 
-SRCREV_machine = "1e7afaadc8d424c53f064911420b07404fa166c5"
-SRCREV_meta = "5cefbe3e2770576771fe59b611d3b5fcf5860a1f"
-LINUX_VERSION = "6.6.52"
+SRCREV_machine = "18916a684a8b836957df88438f9bca590799d04c"
+SRCREV_meta = "b1108273b878547b3d3281f21aba44a8c41ca741"
+LINUX_VERSION = "6.6.58"
 
 # we should add distro version to kernel version to
 # ensure that the module version information is
