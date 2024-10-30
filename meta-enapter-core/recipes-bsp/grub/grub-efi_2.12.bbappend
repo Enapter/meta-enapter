@@ -24,6 +24,7 @@ do_mkimage() {
 
     GRUB_MODULES="\
         boot \
+        cat \
         echo \
         efi_gop \
         efifwsetup \
@@ -31,6 +32,7 @@ do_mkimage() {
         fat \
         gpt \
         help \
+        hexdump \
         increment \
         linux \
         loadenv \
@@ -66,7 +68,7 @@ do_install:append() {
 
 SIGNING_DIR ?= "${B}"
 SIGNING_BINARIES ?= "*.efi"
-SIGN_AFTER ?= "do_compile"
+SIGN_AFTER ?= "do_mkimage"
 SIGN_BEFORE ?= "do_install"
 
 # uefi-sign.bbclass defined in meta-intel layer
