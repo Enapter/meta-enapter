@@ -10,16 +10,15 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES ?= "seccomp ipv6"
 
 DEPENDS = " \
-    go-metalinter-native \
     gpgme \
     libseccomp \
     ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)} \
     gettext-native \
 "
 
-SRCREV = "10c5aa720d59480bc7edad347c1f5d5b75d4424f"
+SRCREV = "227df90eb7c021097c9ba5f8000c83648a598028"
 SRC_URI = " \
-    git://github.com/containers/libpod.git;branch=v5.2;protocol=https \
+    git://github.com/containers/libpod.git;branch=v5.4;protocol=https \
     ${@bb.utils.contains('PACKAGECONFIG', 'rootless', 'file://50-podman-rootless.conf', '', d)} \
     file://run-ptest \
 "
@@ -153,7 +152,8 @@ VIRTUAL-RUNTIME_base-utils-nsenter ?= "util-linux-nsenter"
 COMPATIBLE_HOST = "^(?!mips).*"
 
 RDEPENDS:${PN} += "\
-	catatonit conmon ${VIRTUAL-RUNTIME_container_runtime} iptables libdevmapper ${VIRTUAL-RUNTIME_container_networking} ${VIRTUAL-RUNTIME_base-utils-nsenter} \
+	catatonit conmon ${VIRTUAL-RUNTIME_container_runtime} iptables libdevmapper \
+	${VIRTUAL-RUNTIME_container_dns} ${VIRTUAL-RUNTIME_container_networking} ${VIRTUAL-RUNTIME_base-utils-nsenter} \
 	${@bb.utils.contains('PACKAGECONFIG', 'rootless', 'fuse-overlayfs slirp4netns', '', d)} \
 "
 RRECOMMENDS:${PN} += "slirp4netns \
