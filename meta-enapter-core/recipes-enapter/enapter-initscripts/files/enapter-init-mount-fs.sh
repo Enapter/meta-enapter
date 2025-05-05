@@ -33,37 +33,48 @@ readonly docker_compose_images_dir="$docker_compose_dir/images"
 readonly docker_compose_file="$docker_compose_dir/docker-compose.yml"
 readonly docker_compose_images_readme_file="$docker_compose_images_dir/readme.txt"
 
-user_disk_path="/dev/disk/by-label/$user_fs_label"
-# if we have userspace disk (have a partition with user fs label) then we are in read/write mode
-# else we are using temp filesystem instead of real disks
-if [ -b "$user_disk_path" ]; then
-  rw_mode="yes"
-  user_disk_type="auto"
-else
-  rw_mode=""
-  user_disk_path='tmpfs'
-  user_disk_type='tmpfs'
-fi
+readonly skip_data_disk_mount_file="/boot/enapter-skip-data-disk-mount.env"
 
-status=0
-
-fsck.ext4 -pf "$user_disk_path" || true
-fsck.ext4 -nf "$user_disk_path" || { status=$?; true; }
-if [ $status -ne 0 ]; then
-  echo "ERROR (fsck): $user_disk_path seems to be corrupted, consider recovery operation"
-fi
+readonly user_disk_path="/dev/disk/by-label/$user_fs_label"
 
 # create mountpoint if not exists
 test -d "$user_fs_mountpoint" || mkdir -p "$user_fs_mountpoint"
 
-mount "$user_disk_path" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mountpoint" || { status=$?; true; }
-if [ $status -ne 0 ]; then
-  echo "ERROR (fsck): failed to mount $user_disk_path, trying fsck -y ..."
-  fsck.ext4 -yf "$user_disk_path" || { status=$?; true; }
+# if we have userspace disk (have a partition with user fs label) then we are in read/write mode
+# else we are using temp filesystem instead of real disks
+if [ -b "$user_disk_path" ] && [ ! -f "$skip_data_disk_mount_file" ]; then
+  rw_mode="yes"
+
+  status=0
+
+  fsck.ext4 -pf "$user_disk_path" || true
+  fsck.ext4 -nf "$user_disk_path" || { status=$?; true; }
   if [ $status -ne 0 ]; then
-    echo "ERROR (fsck): fsck -y failed, consider recovery operation"
+    echo "ERROR (fsck): $user_disk_path seems to be corrupted, consider recovery operation"
   fi
-  mount "$user_disk_path" -t "$user_disk_type" -o "$disk_opts" "$user_fs_mountpoint"
+
+  mount "$user_disk_path" -t auto -o "$disk_opts" "$user_fs_mountpoint" || { status=$?; true; }
+  if [ $status -ne 0 ]; then
+    echo "ERROR (fsck): failed to mount $user_disk_path, trying fsck -y ..."
+    fsck.ext4 -yf "$user_disk_path" || { status=$?; true; }
+    if [ $status -ne 0 ]; then
+      echo "ERROR (fsck): fsck -y failed, consider recovery operation"
+    fi
+    mount "$user_disk_path" -t auto -o "$disk_opts" "$user_fs_mountpoint"
+  fi
+else
+  rw_mode=""
+
+  mount tmpfs -t tmpfs "$user_fs_mountpoint"
+
+  test -d "$images_fs_mountpoint" || mkdir -p "$images_fs_mountpoint"
+
+  if [ ! -f "$images_fs_mountpoint/overlay-images/images.lock" ]; then
+    mkdir -p "$images_fs_mountpoint/overlay-images"
+    openssl rand -hex 32 | tr -d '\n' > "$images_fs_mountpoint/overlay-images/images.lock"
+    mkdir -p "$images_fs_mountpoint/overlay-layers"
+    openssl rand -hex 32 | tr -d '\n' > "$images_fs_mountpoint/overlay-layers/layers.lock"
+  fi
 fi
 
 # create userspace directories structure
@@ -71,22 +82,23 @@ for dir in bin etc lib lib64 libexec share sbin var var/lib tmp /images $docker_
   test -d "$user_fs_mountpoint/$dir" || mkdir -p "$user_fs_mountpoint/$dir"
 done
 
-# cleanup /var/tmp, due to bug in 2.1.0-beta1
-test -d "$user_fs_mountpoint/var/tmp" && rm -rf "$user_fs_mountpoint/var/tmp"
-# tmp should be clean after each reboot, its just a rule for /tmp dirs
-# we use find command here to not delete directory itself, only files
-test -d "$user_fs_mountpoint/tmp" && find "$user_fs_mountpoint/tmp" -mindepth 1 -delete
+if [ -n "$rw_mode" ]; then
+  # cleanup /var/tmp, due to bug in 2.1.0-beta1
+  test -d "$user_fs_mountpoint/var/tmp" && rm -rf "$user_fs_mountpoint/var/tmp"
+  # tmp should be clean after each reboot, its just a rule for /tmp dirs
+  # we use find command here to not delete directory itself, only files
+  test -d "$user_fs_mountpoint/tmp" && find "$user_fs_mountpoint/tmp" -mindepth 1 -delete
 
-# cleanup for Podman, because Podman can boot with corrupted state
-# and its hard to fix it when gateway already booted
-rm -rf "$user_fs_mountpoint/var/lib/containers"
-rm -rf "$user_fs_mountpoint/run/containers"
+  # cleanup for Podman, because Podman can boot with corrupted state
+  # and its hard to fix it when gateway already booted
+  rm -rf "$user_fs_mountpoint/var/lib/containers"
+  rm -rf "$user_fs_mountpoint/run/containers"
 
-# cleaup of unpacked images dir to be sure we are starting clean
-rm -rf "$user_fs_mountpoint/usr/share/enapter"
+  # cleaup of unpacked images dir to be sure we are starting clean
+  rm -rf "$user_fs_mountpoint/usr/share/enapter"
 
-if [ ! -f "$user_fs_mountpoint/$docker_compose_file" ]; then
-    cat << EOF > "$user_fs_mountpoint/$docker_compose_file"
+  if [ ! -f "$user_fs_mountpoint/$docker_compose_file" ]; then
+      cat << EOF > "$user_fs_mountpoint/$docker_compose_file"
 # Docker Compose documentation: https://docs.docker.com/compose/
 version: "3"
 
@@ -109,17 +121,16 @@ version: "3"
 #      - /user/grafana-data:/var/lib/grafana
 #    image: enapter/grafana-with-telemetry-datasource-plugin
 EOF
-fi
+  fi
 
-if [ ! -f "$user_fs_mountpoint/$docker_compose_images_readme_file" ]; then
-    cat << EOF > "$user_fs_mountpoint/$docker_compose_images_readme_file"
-Docker images (in tar format) placed in this directory will be automatically loaded after Enapter Gateway restart.
+  if [ ! -f "$user_fs_mountpoint/$docker_compose_images_readme_file" ]; then
+      cat << EOF > "$user_fs_mountpoint/$docker_compose_images_readme_file"
+  Docker images (in tar format) placed in this directory will be automatically loaded after Enapter Gateway restart.
 
-It is typically used for Docker images not available in the public registries, e.g. company private Docker registries.
+  It is typically used for Docker images not available in the public registries, e.g. company private Docker registries.
 EOF
-fi
+  fi
 
-if [ -n "$rw_mode" ]; then
   mkdir -p "$user_fs_mountpoint/etc/enapter"
   # if we are in read/write mode then create special file
   touch "$user_fs_mountpoint/etc/enapter/rwfs"
