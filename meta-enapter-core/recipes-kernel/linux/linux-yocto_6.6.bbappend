@@ -9,6 +9,7 @@ SRC_URI += "\
     file://hardening.cfg \
     file://i2c_smbus.cfg \
     file://iwlwifi_debug.cfg \
+    file://minimal_debug.cfg \
     file://module_sig_format.cfg \
     file://no_debug_info.cfg \
     file://squashfs.cfg \
@@ -34,6 +35,7 @@ KERNEL_EXTRA_FEATURES = "\
                          hardening.cfg \
                          i2c_smbus.cfg \
                          iwlwifi_debug.cfg \
+                         minimal_debug.cfg \
                          module_sig_format.cfg \
                          no_debug_info.cfg \
                          rauc.cfg \
