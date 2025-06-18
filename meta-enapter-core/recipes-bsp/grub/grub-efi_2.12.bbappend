@@ -2,8 +2,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI:append = " file://cfg \
                    file://sbat.csv \
-                   file://0001-Commands-to-increment-and-decrement-variables.patch \
-                   file://0002-Implement-search_part_label.patch \
                   "
 
 DEPENDS:append = " sbsigntool-native"
@@ -26,14 +24,12 @@ do_mkimage() {
         boot \
         cat \
         echo \
-        efi_gop \
         efifwsetup \
+        efi_gop \
         ext2 \
         fat \
-        gpt \
         help \
         hexdump \
-        increment \
         linux \
         loadenv \
         ls \
@@ -43,11 +39,11 @@ do_mkimage() {
         probe \
         read \
         reboot \
+        regexp \
         search \
         search_fs_file \
         search_fs_uuid \
         search_label \
-        search_part_label \
         sleep \
         test \
         true \

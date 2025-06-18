@@ -16,9 +16,42 @@ set fallback="SlotB"
 
 set timeout=2
 
-search --set=config_disk --part-label enp-config
+search --set=config_part --label enp-config
 
-set env_path="($config_disk)/grubenv"
+# Manual parsing based on known patterns
+if [ "${config_part}" == "hd0,gpt2" ]; then
+  set config_disk="hd0"
+elif [ "${config_part}" == "hd1,gpt2" ]; then  
+  set config_disk="hd1"
+elif [ "${config_part}" == "hd2,gpt2" ]; then
+  set config_disk="hd2"
+elif [ "${config_part}" == "hd3,gpt2" ]; then
+  set config_disk="hd3"
+elif [ "${config_part}" == "hd4,gpt2" ]; then
+  set config_disk="hd4"
+elif [ "${config_part}" == "hd5,gpt2" ]; then
+  set config_disk="hd5"
+elif [ "${config_part}" == "hd6,gpt2" ]; then
+  set config_disk="hd6"
+elif [ "${config_part}" == "hd7,gpt2" ]; then
+  set config_disk="hd7"
+fi
+
+set kernel_a_part="(${config_disk},gpt3)"
+set root_a_part="(${config_disk},gpt4)"
+set app_a_part="(${config_disk},gpt5)"
+set kernel_b_part="(${config_disk},gpt6)"
+set root_b_part="(${config_disk},gpt7)"
+set app_b_part="(${config_disk},gpt8)"
+
+probe --part-uuid --set=kernel_a_part_uuid ${kernel_a_part}
+probe --part-uuid --set=root_a_part_uuid ${root_a_part}
+probe --part-uuid --set=app_a_part_uuid ${app_a_part}
+probe --part-uuid --set=kernel_b_part_uuid ${kernel_b_part}
+probe --part-uuid --set=root_b_part_uuid ${root_b_part}
+probe --part-uuid --set=app_b_part_uuid ${app_b_part}
+
+set env_path="($config_part)/grubenv"
 
 load_env --file "$env_path"
 
@@ -48,7 +81,18 @@ for SLOT in $ORDER; do
       A_OK=0
     fi
     if [ "$A_TRY" -ge 0 ]; then
-      decrement A_TRY
+      # Decrement A_TRY with explicit conditionals
+      if [ "${A_TRY}" == "5" ]; then
+        set A_TRY=4
+      elif [ "${A_TRY}" == "4" ]; then
+        set A_TRY=3
+      elif [ "${A_TRY}" == "3" ]; then
+        set A_TRY=2
+      elif [ "${A_TRY}" == "2" ]; then
+        set A_TRY=1
+      elif [ "${A_TRY}" == "1" ]; then
+        set A_TRY=0
+      fi
     fi
     INDEX="SlotA"
     OK=$A_OK
@@ -58,7 +102,18 @@ for SLOT in $ORDER; do
       B_OK=0
     fi
     if [ "$B_TRY" -ge 0 ]; then
-      decrement B_TRY
+      # Decrement B_TRY with explicit conditionals
+      if [ "${B_TRY}" == "5" ]; then
+        set B_TRY=4
+      elif [ "${B_TRY}" == "4" ]; then
+        set B_TRY=3
+      elif [ "${B_TRY}" == "3" ]; then
+        set B_TRY=2
+      elif [ "${B_TRY}" == "2" ]; then
+        set B_TRY=1
+      elif [ "${B_TRY}" == "1" ]; then
+        set B_TRY=0
+      fi
     fi
     INDEX="SlotB"
     OK=$B_OK
@@ -77,43 +132,38 @@ done
 save_env --file "$env_path" A_OK A_TRY B_OK B_TRY
 
 if [ "$default" == "SlotA" ]; then
-  set active_kernel_label="enp-kernel-a"
-  set active_rootfs_label="enp-root-a"
-  set active_appfs_label="enp-app-a"
   set active_slot="A"
+  set active_kernel_part="${kernel_a_part}"
+  set active_root_part_uuid="${root_a_part_uuid}"
+  set active_app_part_uuid="${app_a_part_uuid}"
 else
-  set active_kernel_label="enp-kernel-b"
-  set active_rootfs_label="enp-root-b"
-  set active_appfs_label="enp-app-b"
   set active_slot="B"
+  set active_kernel_part="${kernel_b_part}"
+  set active_root_part_uuid="${root_b_part_uuid}"
+  set active_app_part_uuid="${app_b_part_uuid}"
 fi
 
-set active_slot_params="rauc.slot=${active_slot} root=PARTLABEL=${active_rootfs_label} app=PARTLABEL=${active_appfs_label}"
-export active_slot_params
+set active_slot_params="rauc.slot=${active_slot} root=PARTUUID=${active_root_part_uuid} app=PARTUUID=${active_app_part_uuid}"
 
-search --set=active_slot_kernel_disk --part-label $active_kernel_label
-export active_slot_kernel_disk
+export active_slot_params
+export active_kernel_part
 
 ########################
 # Menu entries         #
 ########################
 
 menuentry "Enapter Linux Slot A (OK: $A_OK, TRY: $DISPLAY_A_TRY)" --id SlotA {
-search --set=kernel_disk --part-label enp-kernel-a
-
 echo 'Loading Linux Kernel ...'
-linux ($kernel_disk)/bzImage $common_params rauc.slot=A root=PARTLABEL=enp-root-a app=PARTLABEL=enp-app-a
+linux $kernel_a_part/bzImage $common_params rauc.slot=A root=PARTUUID=${root_a_part_uuid} app=PARTUUID=${app_a_part_uuid}
 echo 'Loading initial ramdisk ...'
-initrd ($kernel_disk)/initrd
+initrd $kernel_a_part/initrd
 }
 
 menuentry "Enapter Linux Slot B (OK: $B_OK, TRY: $DISPLAY_B_TRY)" --id SlotB {
-search --set=kernel_disk --part-label enp-kernel-b
-
 echo 'Loading Linux Kernel ...'
-linux ($kernel_disk)/bzImage $common_params rauc.slot=B root=PARTLABEL=enp-root-b app=PARTLABEL=enp-app-b
+linux $kernel_b_part/bzImage $common_params rauc.slot=B root=PARTUUID=${root_b_part_uuid} app=PARTUUID=${app_b_part_uuid}
 echo 'Loading initial ramdisk ...'
-initrd ($kernel_disk)/initrd
+initrd $kernel_b_part/initrd
 }
 
 menuentry 'UEFI Firmware Settings' {
@@ -124,37 +174,37 @@ submenu 'Advanced Options for Enapter Linux' {
 
 menuentry 'Enapter Linux (Safe Graphics)' {
 echo 'Loading Linux Kernel ...'
-linux ($active_slot_kernel_disk)/bzImage $common_params nomodeset $active_slot_params
+linux $active_kernel_part/bzImage $common_params nomodeset $active_slot_params
 echo 'Loading initial ramdisk ...'
-initrd ($active_slot_kernel_disk)/initrd
+initrd $active_kernel_part/initrd
 }
 
 menuentry 'Enapter Linux (Password Reset)' {
 echo 'Loading Linux Kernel ...'
-linux ($active_slot_kernel_disk)/bzImage $common_params password_reset $active_slot_params
+linux $active_kernel_part/bzImage $common_params password_reset $active_slot_params
 echo 'Loading initial ramdisk ...'
-initrd ($active_slot_kernel_disk)/initrd
+initrd $active_kernel_part/initrd
 }
 
 menuentry 'Enapter Linux (Factory Reset)' {
 echo 'Loading Linux Kernel ...'
-linux ($active_slot_kernel_disk)/bzImage $common_params factory_reset $active_slot_params
+linux $active_kernel_part/bzImage $common_params factory_reset $active_slot_params
 echo 'Loading initial ramdisk ...'
-initrd ($active_slot_kernel_disk)/initrd
+initrd $active_kernel_part/initrd
 }
 
 menuentry 'Enapter Linux (initrd Debug)' {
 echo 'Loading Linux Kernel ...'
-linux ($active_slot_kernel_disk)/bzImage $common_params init_fatal_sh=true verbose=true debug=true shell-debug $active_slot_params
+linux $active_kernel_part/bzImage $common_params init_fatal_sh=true verbose=true debug=true shell-debug $active_slot_params
 echo 'Loading initial ramdisk ...'
-initrd ($active_slot_kernel_disk)/initrd
+initrd $active_kernel_part/initrd
 }
 
 menuentry 'Enapter Linux (initrd Shell)' {
 echo 'Loading Linux Kernel ...'
-linux ($active_slot_kernel_disk)/bzImage $common_params shell=after:udev init_fatal_sh=true $active_slot_params
+linux $active_kernel_part/bzImage $common_params shell=after:udev init_fatal_sh=true $active_slot_params
 echo 'Loading initial ramdisk ...'
-initrd ($active_slot_kernel_disk)/initrd
+initrd $active_kernel_part/initrd
 }
 
 }

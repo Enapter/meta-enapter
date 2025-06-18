@@ -7,8 +7,9 @@ set -e
 . /usr/share/scripts/enapter-functions
 
 create_fs() {
-    local label=$1
-    local part="/dev/disk/by-partlabel/$label"
+    local partlabel=$1
+    local label=$2
+    local part="/dev/disk/by-partlabel/$partlabel"
 
     for f in {1..5}; do
         mkfs -t ext4 -q -F -m0 -L "$label" "$part" && return 0 || true
@@ -54,16 +55,16 @@ udevadm settle || sleep 3
 
 # do not need to format bootloader partition
 # create_vfat_fs "$disk_bootloader_label" || fatal "Bootloader FS creation failed"
-create_fs "$disk_config_label" || fatal "Configuration FS creation failed"
-create_fs "$disk_kernel_a_label" || fatal "Kernel 1 FS creation failed"
-create_fs "$disk_root_a_label" || fatal "Root 1 FS creation failed"
-create_fs "$disk_app_a_label" || fatal "Application 1 FS creation failed"
-create_fs "$disk_kernel_b_label" || fatal "Kernel 2 FS creation failed"
-create_fs "$disk_root_b_label" || fatal "Root 2 FS creation failed"
-create_fs "$disk_app_b_label" || fatal "Application 2 FS creation failed"
-create_fs "$disk_backup_label" || fatal "Backup FS creation failed"
-create_fs "$disk_images_label" || fatal "Images FS creation failed"
-create_fs "$disk_data_label" || fatal "User FS creation failed"
+create_fs "$disk_config_label" "$disk_config_label" || fatal "Configuration FS creation failed"
+create_fs "$disk_kernel_a_label" "" || fatal "Kernel 1 FS creation failed"
+create_fs "$disk_root_a_label" "" || fatal "Root 1 FS creation failed"
+create_fs "$disk_app_a_label" "" || fatal "Application 1 FS creation failed"
+create_fs "$disk_kernel_b_label" "" || fatal "Kernel 2 FS creation failed"
+create_fs "$disk_root_b_label" "" || fatal "Root 2 FS creation failed"
+create_fs "$disk_app_b_label" "" || fatal "Application 2 FS creation failed"
+create_fs "$disk_backup_label" "" || fatal "Backup FS creation failed"
+create_fs "$disk_images_label" "" || fatal "Images FS creation failed"
+create_fs "$disk_data_label" "" || fatal "User FS creation failed"
 
 sleep 1
 
