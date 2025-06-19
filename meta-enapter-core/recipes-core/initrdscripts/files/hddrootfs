@@ -61,7 +61,7 @@ perform_reset() {
 
       i=1
       while [ "${i}" -le 5 ]; do
-          mkfs.ext4 -q -F -m0 -L "$disk_data_label" "$part" && return 0 || true
+          mkfs.ext4 -q -F -m0 -L "" "$part" && return 0 || true
           echo >&2 "$part mkfs failed, looks mounted (attemp $i)"
           sleep 2
           umount "$part" || true
