@@ -1,17 +1,14 @@
 [Unit]
 Description=Enapter Cloudflared Remote Access Service
-
-ConditionPathExists=/user/etc/enapter/rwfs
-ConditionPathExists=/user/etc/enapter/enapter-cloudflared-remote-access.env
-
-After=network-online.target
-After=local-fs.target
-
+ConditionPathExists=|/user/etc/enapter/enapter-cloudflared-remote-access.env
+ConditionPathExists=|/boot/enapter-cloudflared-remote-access.env
+After=network-online.target local-fs.target
 StartLimitIntervalSec=0
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-EnvironmentFile=/user/etc/enapter/enapter-cloudflared-remote-access.env
+EnvironmentFile=-/user/etc/enapter/enapter-cloudflared-remote-access.env
+EnvironmentFile=-/boot/enapter-cloudflared-remote-access.env
 EnvironmentFile=-/user/etc/enapter/enapter-services-overrides.env
 Type=forking
 
