@@ -154,7 +154,7 @@ COMPATIBLE_HOST = "^(?!mips).*"
 
 RDEPENDS:${PN} += "\
 	catatonit conmon ${VIRTUAL-RUNTIME_container_runtime} iptables libdevmapper \
-	${VIRTUAL-RUNTIME_container_dns} ${VIRTUAL-RUNTIME_container_networking} ${VIRTUAL-RUNTIME_base-utils-nsenter} \
+	${VIRTUAL-RUNTIME_container_dns} ${VIRTUAL-RUNTIME_container_networking} skopeo ${VIRTUAL-RUNTIME_base-utils-nsenter} \
 	${@bb.utils.contains('PACKAGECONFIG', 'rootless', 'fuse-overlayfs slirp4netns', '', d)} \
 "
 RRECOMMENDS:${PN} += "slirp4netns \
