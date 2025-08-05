@@ -55,6 +55,25 @@ efi_boot_dir="EFI/BOOT"
 efi_enapter="$root_mount$efi_enapter_dir"
 efi_boot="$root_mount$efi_boot_dir"
 
+set_userspace_disk_pre_wipe_script="/usr/bin/enapter-set-userspace-disk-pre-wipe"
+set_userspace_disk_pre_part_script="/usr/bin/enapter-set-userspace-disk-pre-part"
+set_userspace_disk_pre_fs_script="/usr/bin/enapter-set-userspace-disk-pre-fs"
+set_userspace_disk_post_script="/usr/bin/enapter-set-userspace-disk-post"
+
+min_data_disk_size_bytes=64424509440 # 60.00 GiB
+
+nginx_conf_path=/etc/nginx/nginx.conf
+
+user_nginx_ssl_cert="$user_fs_mount/etc/enapter/certs/nginx/cert.pem"
+user_nginx_ssl_certkey="$user_fs_mount/etc/enapter/certs/nginx/certkey.pem"
+
+pre_install_boot_nginx_ssl_cert_file="pre_install_boot_nginx_cert.pem"
+pre_install_boot_nginx_ssl_certkey_file="pre_install_boot_nginx_certkey.pem"
+pre_install_boot_nginx_ssl_cert_tmp="/root/$pre_install_boot_nginx_ssl_cert_file"
+pre_install_boot_nginx_ssl_certkey_tmp="/root/$pre_install_boot_nginx_ssl_certkey_file"
+pre_install_boot_nginx_ssl_cert_config="$config_mount/$pre_install_boot_nginx_ssl_cert_file"
+pre_install_boot_nginx_ssl_certkey_config="$config_mount/$pre_install_boot_nginx_ssl_certkey_file"
+
 hdd_backup_device="/dev/disk/by-partlabel/$disk_backup_label"
 hdd_config_device="/dev/disk/by-partlabel/$disk_config_label"
 hdd_data_device="/dev/disk/by-partlabel/$disk_data_label"

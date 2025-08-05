@@ -30,7 +30,22 @@ if [ ! -b "$disk" ]; then
   fatal "Device with name '$disk' does not exists"
 fi
 
+disk_size_bytes=$(lsblk "$disk" --output PATH,SIZE --json --bytes | jq -r --arg diskpath "$disk" '.blockdevices[] | select(.path == $diskpath) | .size')
+if [[ -n "$disk_size_bytes" && "$disk_size_bytes" -lt "$min_data_disk_size_bytes" ]]; then
+  disk_size_gib=$(echo "scale=2; $disk_size_bytes / 1024 / 1024 / 1024" | bc)
+  min_size_gib=$(echo "scale=2; $min_data_disk_size_bytes/ 1024 / 1024 / 1024" | bc)
+  fatal "Device '$disk' (${disk_size_gib} GiB) does not meet minimum size requirement of ${min_size_gib} GiB"
+fi
+
+if [[ -x "$set_userspace_disk_pre_wipe_script" ]]; then
+  "$set_userspace_disk_pre_wipe_script" "$disk"
+fi
+
 sfdisk --delete "$disk" || true
+
+if [[ -x "$set_userspace_disk_pre_part_script" ]]; then
+  "$set_userspace_disk_pre_part_script" "$disk"
+fi
 
 bootloader_part="start=2m size=16m name=$disk_bootloader_label type=U"
 config_part="start=64m size=16m name=$disk_config_label type=L"
@@ -51,7 +66,9 @@ printf "$bootloader_part\n $config_part\n $kernel_a_part\n $root_a_part \n$app_a
 udevadm trigger --action=add
 udevadm settle || sleep 3
 
-# TODO: check if disk size at least ??? GB
+if [[ -x "$set_userspace_disk_pre_fs_script" ]]; then
+  "$set_userspace_disk_pre_fs_script" "$disk"
+fi
 
 # do not need to format bootloader partition
 # create_vfat_fs "$disk_bootloader_label" || fatal "Bootloader FS creation failed"
@@ -69,5 +86,9 @@ create_fs "$disk_data_label" "" || fatal "User FS creation failed"
 sleep 1
 
 ensure_sync
+
+if [[ -x "$set_userspace_disk_post_script" ]]; then
+  "$set_userspace_disk_post_script" "$disk"
+fi
 
 sleep 1 && reboot -f
