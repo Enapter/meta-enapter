@@ -25,15 +25,7 @@ print_os_version() {
 
 print_welcome_message() {
     default_welcome_message="
-Welcome to Enapter Gateway!
-
-Please access the Gateway web interface:
-- Use \"http://enapter-gateway.local\" from a browser on your computer
-  or mobile device connected to the same network as the Gateway.
-- If the link above does not work, access the Gateway using IP address.
-  To find out your IP address, type \"ip\" command into the command line below
-  and press <Enter>.
-  Then type the IP address into your browser address bar and press <Enter>.
+Welcome to Enapter Industrial Linux!
 "
 
     echo "${gateway_welcome_message:-$default_welcome_message}"
