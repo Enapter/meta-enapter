@@ -6,6 +6,7 @@ ConditionPathExists=/etc/nginx/nginx.conf
 [Service]
 Type=forking
 PIDFile=/run/nginx/nginx.pid
+EnvironmentFile=-/etc/enapter/enapter-web-server.env
 EnvironmentFile=-/user/etc/enapter/enapter-web-server.env
 EnvironmentFile=-/user/etc/enapter/enapter-services-overrides.env
 ExecStartPre=-/usr/bin/enapter-nginx-pre
