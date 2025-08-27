@@ -14,4 +14,4 @@ RemainAfterExit=false
 ExecStart=/user/bin/enapter-cron-hook
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=multi-user.target

@@ -14,4 +14,4 @@ RemainAfterExit=false
 ExecStart=/usr/bin/enapter-wifi-watchdog
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=multi-user.target

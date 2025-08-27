@@ -41,4 +41,4 @@ ExecStop=/usr/bin/podman stop --ignore --cidfile %t/container-%N.ctr-id -t 10
 PIDFile=%t/container-%N.pid
 
 [Install]
-WantedBy=multi-user.target default.target
+WantedBy=multi-user.target
