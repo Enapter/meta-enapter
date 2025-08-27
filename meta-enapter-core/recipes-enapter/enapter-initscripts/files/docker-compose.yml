@@ -4,6 +4,10 @@ version: "3"
 # Uncomment the lines below (remove \`#\` symbol) to run Grafana on the gateway.
 # It's already configured with Enapter datasource plugin, no further configuration needed.
 # Grafana will be available on port :3000 on the gateway, e.g. http://enapter-gateway.local:3000
+#
+# Default login credentials are admin/admin. Be sure to change the default
+# password to mitigate security risks.
+#
 # Enapter datasource documentation: https://go.enapter.com/grafana-docs
 #
 # Run \`systemctl restart enapter-docker-compose\` after updating this file.
