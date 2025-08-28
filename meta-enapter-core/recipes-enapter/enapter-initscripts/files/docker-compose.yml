@@ -20,6 +20,7 @@ version: "3"
 #    env_file: /user/etc/enapter/enapter-token.env
 #    environment:
 #      - 'ENAPTER_API_URL=http://10.88.0.1/api'
+#      - 'PROVISION_ENAPTER_VUCM_DASHBOARD=1'
 #      # NOTE: Making Commands Plugin support Platform V3 is on the way.
 #      - 'DISABLE_ENAPTER_COMMANDS_PANEL_PLUGIN=1'
 #    volumes:
