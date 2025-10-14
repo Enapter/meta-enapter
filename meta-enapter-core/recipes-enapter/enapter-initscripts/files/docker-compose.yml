@@ -30,7 +30,5 @@ version: "3"
 #    environment:
 #      - ENAPTER_API_URL=http://10.88.0.1/api
 #      - PROVISION_ENAPTER_BUILT_IN_DASHBOARDS=1
-#      # NOTE: Gateway 3.0 does not support Commands Plugin yet, but it's on the way.
-#      - DISABLE_ENAPTER_COMMANDS_PANEL_PLUGIN=1
 #    volumes:
 #      - /user/grafana-data:/var/lib/grafana
