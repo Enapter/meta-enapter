@@ -2,6 +2,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 
 SRC_URI += "\
+    file://0001-Fix-kernel-NULL-pointer-derefernce-on-ADVANTECH-ARK-1221L.patch \
     file://squashfs.cfg \
     file://can.cfg \
     file://iwlwifi_debug.cfg \

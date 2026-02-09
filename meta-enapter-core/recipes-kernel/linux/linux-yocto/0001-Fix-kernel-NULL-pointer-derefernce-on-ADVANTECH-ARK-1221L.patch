@@ -1,0 +1,43 @@
+From 1e66f2728b4c9b602ee7ecb7d55200988017f0ba Mon Sep 17 00:00:00 2001
+From: Dmitrii Miaskovskii <dmitry@enapter.com>
+Date: Mon, 9 Feb 2026 13:06:44 +0100
+Subject: [PATCH] Fix kernel NULL pointer derefernce on ADVANTECH ARK 1221L
+ (intel elkhart) device
+
+Upstream-Status: Inappropriate [rejected as a wrong solution]
+---
+ drivers/pinctrl/intel/pinctrl-intel.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/pinctrl/intel/pinctrl-intel.c b/drivers/pinctrl/intel/pinctrl-intel.c
+index 8542053d4d6d..3d42e67e9981 100644
+--- a/drivers/pinctrl/intel/pinctrl-intel.c
++++ b/drivers/pinctrl/intel/pinctrl-intel.c
+@@ -1647,19 +1647,19 @@ EXPORT_SYMBOL_GPL(intel_pinctrl_probe_by_uid);
+ const struct intel_pinctrl_soc_data *intel_pinctrl_get_soc_data(struct platform_device *pdev)
+ {
+ 	const struct intel_pinctrl_soc_data * const *table;
+-	const struct intel_pinctrl_soc_data *data = NULL;
++	const struct intel_pinctrl_soc_data *data;
++	struct device *dev = &pdev->dev;
+
+-	table = device_get_match_data(&pdev->dev);
++	table = device_get_match_data(dev);
+ 	if (table) {
+-		struct acpi_device *adev = ACPI_COMPANION(&pdev->dev);
++		struct acpi_device *adev = ACPI_COMPANION(dev);
+ 		unsigned int i;
+
+ 		for (i = 0; table[i]; i++) {
+-			if (!strcmp(adev->pnp.unique_id, table[i]->uid)) {
+-				data = table[i];
++			if (adev->pnp.unique_id && !strcmp(adev->pnp.unique_id, table[i]->uid))
+ 				break;
+-			}
+ 		}
++		data = table[i];
+ 	} else {
+ 		const struct platform_device_id *id;
+
+--
+2.51.2
