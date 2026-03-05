@@ -51,6 +51,7 @@ ExecStart=/usr/bin/podman run \
           --collector.os \
           --collector.stat \
           --collector.network_route \
+          --collector.hwmon \
           --web.listen-address="10.88.0.1:9100"
 
 ExecStop=/usr/bin/podman stop --ignore --cidfile %t/container-%N.ctr-id -t 10
