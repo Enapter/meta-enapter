@@ -75,14 +75,14 @@ perform_reset() {
       i=1
       while [ "${i}" -le 5 ]; do
           mkfs.ext4 -q -F -m0 -L "" "$part" && return 0 || true
-          echo >&2 "$part mkfs failed, looks mounted (attemp $i)"
+          echo >&2 "$part mkfs failed, looks mounted (attempt $i)"
           sleep 2
           umount "$part" || true
 
           i=$((i + 1))
       done
 
-      echo >&2 "$part mkfs failed, retries exausted"
+      echo >&2 "$part mkfs failed, retries exhausted"
       sleep 1
       return 1
     fi
@@ -221,7 +221,7 @@ rootfs_run() {
     fi
 
     if [ -n "$bootparam_factory_reset" ]; then
-        perform_reset "$hdd_data_device" || info "[!] Factroy reset failed"
+        perform_reset "$hdd_data_device" || info "[!] Factory reset failed"
     fi
 
     if [ -n "$bootparam_erase_data_disk" ]; then

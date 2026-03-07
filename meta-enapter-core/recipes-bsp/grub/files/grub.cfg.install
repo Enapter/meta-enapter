@@ -18,7 +18,9 @@ set timeout=2
 
 search --set=config_part --label enp-config
 
-# Manual parsing based on known patterns
+# GRUB has no string manipulation operations, so we cannot extract the disk
+# number from a partition device string like "hd3,gpt2". Enumerate all known
+# patterns explicitly instead. Supports up to 8 disks (hd0-hd7).
 if [ "${config_part}" == "hd0,gpt2" ]; then
   set config_disk="hd0"
 elif [ "${config_part}" == "hd1,gpt2" ]; then  
@@ -65,7 +67,10 @@ fi
 set common_params="panic=20 ${systemd_bootargs}"
 export common_params
 
-# if all retries are 0 then reset retries to 1
+# Safety fallback: if both slots have exhausted all retry attempts (TRY=0),
+# reset both to 1 so the system can attempt to boot rather than being
+# permanently locked out. If this triggers repeatedly it indicates both
+# slots are broken and manual recovery is needed.
 if [ "$A_TRY" -eq 0 -a "$B_TRY" -eq 0 ]; then
   A_TRY=1
   B_TRY=1

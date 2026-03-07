@@ -24,6 +24,10 @@ if [ -b "$hdd_config_device" ]; then
     fi
     mount "$hdd_config_device" -o "$disk_opts" "$config_mount"
   fi
+  # Config partition is present (installed system).
+  # If grubenv existed as a symlink to the USB location (from a previous
+  # USB-only boot), replace it with a real file on the config partition.
+  # This migrates grubenv from USB to the persistent HDD config partition.
   if [[ "$grubenv_path" != "$usb_grubenv_path" ]]; then
     if [[ -L "$grubenv_path" ]]; then
       rm -f "$grubenv_path"
@@ -33,6 +37,9 @@ if [ -b "$hdd_config_device" ]; then
     fi
   fi
 else
+  # No config partition (USB-only / pre-install mode).
+  # Point grubenv_path to the USB location via symlink so that
+  # enapter-boot-success and enapter-boot-fallback-enable still work.
   if [[ "$grubenv_path" != "$usb_grubenv_path" ]]; then
     if [[ ! -L "$grubenv_path" && -f "$usb_grubenv_path" ]]; then
       ln -s "$usb_grubenv_path" "$grubenv_path"
@@ -82,12 +89,15 @@ test -d "$user_fs_mount/var/tmp" && rm -rf "$user_fs_mount/var/tmp"
 # we use find command here to not delete directory itself, only files
 test -d "$user_fs_mount/tmp" && find "$user_fs_mount/tmp" -mindepth 1 -delete
 
-# cleanup for Podman, because Podman can boot with corrupted state
-# and its hard to fix it when gateway already booted
+# Podman storage is wiped on every boot intentionally. Podman can enter a
+# corrupted state (e.g. after a power loss during image pull) that is very
+# hard to recover from once the system is running. Container images are
+# re-imported from the layers directory by enapter-podman-prepare on each boot,
+# so persistent container storage is not needed.
 rm -rf "$user_fs_mount/var/lib/containers"
 rm -rf "$user_fs_mount/run/containers"
 
-# cleaup of unpacked images dir to be sure we are starting clean
+# cleanup of unpacked images dir to be sure we are starting clean
 rm -rf "$user_fs_mount/usr/share/enapter"
 
 if [ ! -f "$user_fs_mount/$docker_compose_file" ]; then

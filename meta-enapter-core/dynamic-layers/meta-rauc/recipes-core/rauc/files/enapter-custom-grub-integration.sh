@@ -46,6 +46,8 @@ function set_state ()
 function get_primary ()
 {
 	order_value=$($grub_editenv "$grubenv_path" list | sed -n "s/^ORDER=//p")
+	# Extract the first word from ORDER (e.g. "A B" -> "A").
+	# POSIX sh has no array indexing, so use for...break to get the first element.
 	for slot in $order_value; do
 		bootname="$slot"
 		break
@@ -58,7 +60,8 @@ function get_primary ()
 	echo "$bootname"
 }
 
-# when settings primary slot we need to set <slot>_TRY=1
+# When setting the primary slot we must also set <slot>_TRY=1 so GRUB
+# will actually attempt to boot it on the next boot (TRY=0 means skip).
 function set_primary ()
 {
 	bootname=$1

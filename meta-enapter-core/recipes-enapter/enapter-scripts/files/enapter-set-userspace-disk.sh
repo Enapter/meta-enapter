@@ -13,12 +13,12 @@ create_fs() {
 
     for f in {1..5}; do
         mkfs -t ext4 -q -F -m0 -L "$label" "$part" && return 0 || true
-        echo >&2 "$part mkfs failed, looks mounted (attemp $f)"
+        echo >&2 "$part mkfs failed, looks mounted (attempt $f)"
         sleep 2
         umount "$part" || true
     done
 
-    echo >&2 "$part mkfs failed, retries exausted"
+    echo >&2 "$part mkfs failed, retries exhausted"
     return 1
 }
 
@@ -91,4 +91,5 @@ if [[ -x "$set_userspace_disk_post_script" ]]; then
   "$set_userspace_disk_post_script" "$disk"
 fi
 
+# Reboot is required for the kernel to re-read the new GPT partition table.
 sleep 1 && reboot -f

@@ -70,7 +70,7 @@ while true; do
 done
 
 if [[ $# -ne 1 ]]; then
-    echo "$0: A name of update file requred as an argument."
+    echo "$0: A name of update file required as an argument."
     exit 4
 fi
 
