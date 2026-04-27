@@ -7,6 +7,7 @@ SRC_URI = "file://LICENSE \
            file://${BPN}.service \
            file://${BPN}.sh \
            file://var-log-journal.mount \
+           file://journald.conf \
           "
 
 RDEPENDS:${PN} = "bash"
@@ -24,11 +25,15 @@ do_install() {
     install -d ${D}${systemd_unitdir}/system/
     install -m 0644 ${WORKDIR}/${PN}.service ${D}${systemd_unitdir}/system
     install -m 0644 ${WORKDIR}/var-log-journal.mount ${D}${systemd_unitdir}/system/
+
+    install -d ${D}${systemd_unitdir}/journald.conf.d/
+    install -m 0644 ${WORKDIR}/journald.conf ${D}${systemd_unitdir}/journald.conf.d/10-enapter.conf
 }
 
 FILES:${PN} += " \
         ${systemd_unitdir}/system/${PN}.service \
         ${bindir}/${PN} \
         ${systemd_unitdir}/system/var-log-journal.mount \
+        ${systemd_unitdir}/journald.conf.d/10-enapter.conf \
 "
 
