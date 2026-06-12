@@ -3,7 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI += "file://coredump.conf \
            "
 
-RDEPENDS:${PN} = "bash"
+RDEPENDS:${PN}:append = " bash"
 
 do_install:append() {
     install -d ${D}/${sysconfdir}/systemd/coredump.conf.d

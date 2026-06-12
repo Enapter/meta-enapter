@@ -12,8 +12,6 @@ SRC_URI = "file://LICENSE \
 inherit useradd
 
 ENAPTER_USERNAME ?= "enapter"
-# default password is "enapter", can be changed and persisted via "enapter-set-password" script
-ENAPTER_USER_PASSWD_HASH ?= "\$6\$6eb82457686bad72\$FrAewCqMTY5cu/9neeZTFDJDFopeprTE7bo2Fui4b.x83uOL8Qqs4xGhFeJbyWlGbxHWOvCSOxe8pghZiUIgt1"
 
 RDEPENDS:${PN} += "bash"
 
@@ -23,7 +21,7 @@ USERADD_PARAM:${PN} = " \
     --home /home/${ENAPTER_USERNAME} \
     --no-user-group \
     --groups sudo \
-    --password '${ENAPTER_USER_PASSWD_HASH}' \
+    --password '*' \
     --system --no-create-home \
     --shell /bin/bash \
     ${ENAPTER_USERNAME}"

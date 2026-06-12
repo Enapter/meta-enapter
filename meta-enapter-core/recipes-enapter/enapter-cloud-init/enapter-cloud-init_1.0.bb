@@ -1,4 +1,4 @@
-SUMMARY = "Enapter Password Configurator service"
+SUMMARY = "Enapter Cloud Init Service (Amazon EC2 provisioning)"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://${WORKDIR}/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327"
 
@@ -8,29 +8,27 @@ SRC_URI = " \
           file://${BPN}.sh \
           "
 
-ENAPTER_USERNAME ?= "enapter"
-# default password is "enapter", applied at runtime on non-cloud (non-EC2)
-# installations only; on Amazon EC2 the account stays locked
-ENAPTER_USER_PASSWD_HASH ?= "\$6\$6eb82457686bad72\$FrAewCqMTY5cu/9neeZTFDJDFopeprTE7bo2Fui4b.x83uOL8Qqs4xGhFeJbyWlGbxHWOvCSOxe8pghZiUIgt1"
-
 inherit systemd
 
 SYSTEMD_SERVICE:${PN} = "${PN}.service"
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
-RDEPENDS:${PN} = "bash enapter-scripts shadow"
+RDEPENDS:${PN} = "bash curl jq enapter-scripts"
 
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${WORKDIR}/${PN}.sh ${D}${bindir}/${PN}
-    sed -i -e 's|@@ENAPTER_USERNAME@@|${ENAPTER_USERNAME}|' ${D}${bindir}/${PN}
-    sed -i -e 's|@@ENAPTER_USER_PASSWD_HASH@@|${ENAPTER_USER_PASSWD_HASH}|' ${D}${bindir}/${PN}
 
     install -d ${D}${systemd_unitdir}/system/
     install -m 0644 ${WORKDIR}/${PN}.service ${D}${systemd_unitdir}/system
+
+    # Baked into the read-only rootfs; cloud-init.env is written here at
+    # runtime (volatile overlay) when running on a cloud instance.
+    install -d ${D}${sysconfdir}/enapter/cloud
 }
 
 FILES:${PN} += " \
     ${systemd_unitdir}/system/${PN}.service \
     ${bindir}/${PN} \
+    ${sysconfdir}/enapter/cloud \
 "

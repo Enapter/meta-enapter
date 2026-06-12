@@ -44,7 +44,9 @@ do_mkimage() {
         search_fs_file \
         search_fs_uuid \
         search_label \
+        serial \
         sleep \
+        smbios \
         test \
         true \
     "

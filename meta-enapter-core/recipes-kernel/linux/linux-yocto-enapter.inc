@@ -3,6 +3,7 @@
 SRC_URI += "\
     file://can.cfg \
     file://cdc_mbim.cfg \
+    file://ena.cfg \
     file://eth.cfg \
     file://f81801_support.cfg \
     file://hardening.cfg \
@@ -23,13 +24,16 @@ KERNEL_EXTRA_FEATURES = "\
                          features/mmc/mmc-realtek.scc \
                          features/netfilter/netfilter.scc \
                          features/ocicontainer/ocicontainer.scc \
+                         features/pci/pci.scc \
                          features/security/security.scc \
                          features/usb/serial-all.scc \
                          features/wifi/wifi-usb.scc \
+                         cfg/paravirt_kvm.scc \
                          cfg/vmware-guest.scc \
                          \
                          can.cfg \
                          cdc_mbim.cfg \
+                         ena.cfg \
                          eth.cfg \
                          hardening.cfg \
                          i2c_smbus.cfg \

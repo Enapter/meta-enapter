@@ -33,3 +33,15 @@ debug() {
 ensure_sync() {
   sync; sync; sync
 }
+
+running_on_ec2() {
+  # DMI-based Amazon EC2 detection (covers Nitro and Xen instance generations)
+  local vendor uuid
+  vendor=$(cat /sys/class/dmi/id/sys_vendor 2>/dev/null)
+  [ "$vendor" = "Amazon EC2" ] && return 0
+  uuid=$(cat /sys/class/dmi/id/product_uuid 2>/dev/null)
+  case "${uuid,,}" in ec2*) return 0 ;; esac
+  uuid=$(cat /sys/hypervisor/uuid 2>/dev/null)
+  case "${uuid,,}" in ec2*) return 0 ;; esac
+  return 1
+}

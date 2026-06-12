@@ -1,0 +1,16 @@
+[Unit]
+Description=Enapter Cloud Init (Amazon EC2 provisioning)
+
+After=network-online.target
+Wants=network-online.target
+After=enapter-authorized-ssh-keys-configurator.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/enapter-cloud-init
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

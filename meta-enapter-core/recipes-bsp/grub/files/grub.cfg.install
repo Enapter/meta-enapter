@@ -16,6 +16,18 @@ set fallback="SlotB"
 
 set timeout=2
 
+# On EC2 (Nitro reports "Amazon EC2" in DMI type 1 Manufacturer) enable the
+# serial console: GRUB menu on serial and kernel/systemd console on ttyS0.
+# console_params stays empty everywhere else, keeping the cmdline unchanged.
+set console_params=""
+smbios --type 1 --get-string 4 --set sys_manufacturer
+if [ "${sys_manufacturer}" == "Amazon EC2" ]; then
+  set console_params="console=tty0 console=ttyS0,115200n8"
+  serial --unit=0 --speed=115200
+  terminal_input --append serial
+  terminal_output --append serial
+fi
+
 search --set=config_part --label enp-config
 
 # GRUB has no string manipulation operations, so we cannot extract the disk
@@ -64,7 +76,7 @@ else
   set systemd_bootargs="systemd.condition-first-boot=true"
 fi
 
-set common_params="panic=20 ${systemd_bootargs}"
+set common_params="panic=20 ${systemd_bootargs} ${console_params}"
 export common_params
 
 # Safety fallback: if both slots have exhausted all retry attempts (TRY=0),
