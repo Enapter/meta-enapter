@@ -15,15 +15,9 @@ if running_on_ec2; then
   exit 0
 fi
 
-password_env_file="$user_etc_enapter/$enapter_superuser_password_env_file"
-if [ -f "$password_env_file" ]; then
-  . "$password_env_file"
-else
-  # default password, can be changed and persisted via "enapter-set-password" script
-  SUPERUSER_PASSWORD_HASH='@@ENAPTER_USER_PASSWD_HASH@@'
-fi
+DEFAULT_SUPERUSER_PASSWORD_HASH='$6$6eb82457686bad72$FrAewCqMTY5cu/9neeZTFDJDFopeprTE7bo2Fui4b.x83uOL8Qqs4xGhFeJbyWlGbxHWOvCSOxe8pghZiUIgt1'
 
-usermod --password "$SUPERUSER_PASSWORD_HASH" '@@ENAPTER_USERNAME@@'
+usermod --password "${SUPERUSER_PASSWORD_HASH:-$DEFAULT_SUPERUSER_PASSWORD_HASH}" 'enapter'
 
 # Non-cloud installations keep the easy local access path: re-enable SSH
 # password authentication via a drop-in. /etc lives on a volatile overlay,
