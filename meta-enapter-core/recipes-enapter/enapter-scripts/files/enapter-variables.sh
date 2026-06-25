@@ -73,10 +73,15 @@ user_nginx_ssl_certkey="$user_fs_mount/etc/enapter/certs/nginx/certkey.pem"
 
 pre_install_boot_nginx_ssl_cert_file="pre_install_boot_nginx_cert.pem"
 pre_install_boot_nginx_ssl_certkey_file="pre_install_boot_nginx_certkey.pem"
+pre_install_boot_gateway_setup_env_file="enapter-gateway-setup.env"
 pre_install_boot_nginx_ssl_cert_tmp="/root/$pre_install_boot_nginx_ssl_cert_file"
 pre_install_boot_nginx_ssl_certkey_tmp="/root/$pre_install_boot_nginx_ssl_certkey_file"
 pre_install_boot_nginx_ssl_cert_config="$config_mount/$pre_install_boot_nginx_ssl_cert_file"
 pre_install_boot_nginx_ssl_certkey_config="$config_mount/$pre_install_boot_nginx_ssl_certkey_file"
+pre_install_boot_gateway_setup_env_tmp="/root/$pre_install_boot_gateway_setup_env_file"
+pre_install_boot_gateway_setup_env_config="$config_mount/$pre_install_boot_gateway_setup_env_file"
+
+user_gateway_setup_env="$user_fs_mount/etc/enapter/$pre_install_boot_gateway_setup_env_file"
 
 hdd_backup_device="/dev/disk/by-partlabel/$disk_backup_label"
 hdd_config_device="/dev/disk/by-partlabel/$disk_config_label"
